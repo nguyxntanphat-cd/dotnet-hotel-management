@@ -61,6 +61,8 @@ src/HotelManagement/
   Forms/       LoginForm, MainForm
   Views/       Các màn hình chức năng
 docs/preview/  Bản xem trước HTML
+docs/screenshots/  Ảnh chụp các màn hình
+.github/workflows/build.yml  CI: build trên Windows mỗi lần đẩy code, kèm bản chạy được (tab Actions → Artifacts)
 ```
 
 Giao diện được dựng bằng code (không dùng file `.Designer.cs`) để các màn hình dùng chung một phong cách.
