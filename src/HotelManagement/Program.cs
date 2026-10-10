@@ -1,5 +1,7 @@
 using System.Globalization;
+using HotelManagement.Data;
 using HotelManagement.Forms;
+using HotelManagement.UI;
 
 namespace HotelManagement;
 
@@ -15,6 +17,17 @@ internal static class Program
         Thread.CurrentThread.CurrentUICulture = vi;
 
         ApplicationConfiguration.Initialize();
+
+        if (DataSource.LaSql)
+        {
+            try { Db.KiemTraKetNoi(); }
+            catch (Exception ex)
+            {
+                UiKit.Warn($"Không kết nối được SQL Server (HOTEL_DATA=Sql).\n\n{ex.Message}\n\n" +
+                           "Kiểm tra đã chạy Data/Sql/01_schema.sql, 02_seed.sql và biến HOTEL_DB.", "Lỗi kết nối");
+                return;
+            }
+        }
 
         // Vòng lặp đăng nhập → màn hình chính → đăng xuất → đăng nhập lại.
         while (true)

@@ -18,6 +18,17 @@ dotnet run --project src/HotelManagement
 
 hoặc mở `HotelManagement.sln` bằng Visual Studio rồi nhấn F5.
 
+Mặc định app dùng dữ liệu mẫu trong bộ nhớ. Để chạy với SQL Server (LocalDB đi kèm Visual Studio):
+
+```bash
+sqlcmd -S "(localdb)\MSSQLLocalDB" -f 65001 -i src/HotelManagement/Data/Sql/01_schema.sql
+sqlcmd -S "(localdb)\MSSQLLocalDB" -f 65001 -i src/HotelManagement/Data/Sql/02_seed.sql
+set HOTEL_DATA=Sql
+dotnet run --project src/HotelManagement
+```
+
+Dùng SQL Server khác thì đặt chuỗi kết nối vào biến `HOTEL_DB`. Trong lúc chuyển đổi, bảng nào chưa có bản Sql vẫn đọc dữ liệu mẫu (xem mục 2 của `AGENTS.md`).
+
 Tài khoản demo (mật khẩu đều là `123`):
 
 | Tên đăng nhập | Vai trò | Thấy các chức năng |

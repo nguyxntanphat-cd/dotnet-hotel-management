@@ -42,6 +42,13 @@ public static class TrangThaiLuuTru
     public const string DaTraPhong = "Đã trả phòng";
 }
 
+/// <summary>Vai trò của khách trong một lượt lưu trú (<see cref="ChiTietLuuTru.VaiTro"/>).</summary>
+public static class VaiTroLuuTru
+{
+    public const string KhachChinh = "Khách chính";
+    public const string KhachDiCung = "Khách đi cùng";
+}
+
 public static class TrangThaiDichVu
 {
     public const string DangKinhDoanh = "Đang kinh doanh";
@@ -54,6 +61,11 @@ public static class TrangThaiHoaDon
     public const string ThanhToanMotPhan = "Thanh toán một phần";
     public const string DaThanhToan = "Đã thanh toán";
     public static readonly string[] TatCa = { ChuaThanhToan, ThanhToanMotPhan, DaThanhToan };
+}
+
+public static class TrangThaiThanhToan
+{
+    public const string ThanhCong = "Thành công";
 }
 
 public static class PhuongThucThanhToan
