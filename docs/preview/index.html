@@ -1,0 +1,812 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--ARTIFACT-START-->
+<title>Sài Gòn Hotel – Xem trước giao diện</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap">
+<style>
+/* Bố cục: mô phỏng cửa sổ WinForms (menu trái tối, thanh trên trắng, vùng nội dung xám nhạt), dùng đúng bảng màu trong UI/Theme.cs.
+   Giao diện một chủ đề sáng có chủ ý, giống ứng dụng desktop. */
+:root {
+  --primary: #1d4ed8; --primary-hover: #1e40af; --primary-soft: #dbeafe;
+  --sidebar: #0f172a; --sidebar-hover: #1e293b; --sidebar-text: #cbd5e1; --sidebar-muted: #64748b;
+  --bg: #f1f5f9; --surface: #ffffff; --border: #e2e8f0; --text: #0f172a; --muted: #64748b;
+  --success: #16a34a; --warning: #d97706; --danger: #dc2626; --info: #0891b2; --violet: #7c3aed; --gray: #64748b;
+  --page: #e2e8f0;
+  --font: "Segoe UI", "Noto Sans", system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--page); color: var(--text); font-family: var(--font); font-size: 13px; }
+body { padding-block: 16px 32px; padding-inline: 16px; }
+.intro { max-width: 1240px; margin: 0 auto 12px; display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center; justify-content: space-between; }
+.intro h1 { font-size: 18px; margin: 0; text-wrap: balance; }
+.intro p { margin: 2px 0 0; color: var(--muted); max-width: 70ch; }
+.intro .roles { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.intro .roles span { color: var(--muted); margin-right: 4px; }
+.scroller { overflow-x: auto; max-width: 1240px; margin: 0 auto; border-radius: 8px; box-shadow: 0 10px 30px rgba(15, 23, 42, .18); }
+.window { min-width: 1180px; background: var(--bg); border: 1px solid #94a3b8; border-radius: 8px; overflow: hidden; }
+.titlebar { height: 32px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 0 0 12px; font-size: 12px; }
+.titlebar .ttl { flex: 1; }
+.titlebar .wbtn { width: 46px; height: 32px; display: grid; place-items: center; color: var(--muted); }
+.titlebar .wbtn.x:hover { background: #e81123; color: #fff; }
+.app { display: flex; height: 860px; }
+
+/* Sidebar */
+.side { width: 250px; background: var(--sidebar); display: flex; flex-direction: column; flex-shrink: 0; }
+.brand { height: 64px; color: #fff; font-weight: 700; font-size: 18px; display: flex; align-items: center; padding-left: 20px; gap: 10px; }
+.brand .logo { width: 30px; height: 30px; border-radius: 6px; background: var(--primary); display: grid; place-items: center; font-size: 15px; }
+.menu { flex: 1; overflow-y: auto; padding: 4px 10px 16px; }
+.menu .grp { color: var(--sidebar-muted); font-size: 10.5px; font-weight: 700; letter-spacing: .06em; margin: 14px 10px 4px; text-transform: uppercase; }
+.menu button { display: block; width: 100%; text-align: left; border: 0; background: transparent; color: var(--sidebar-text); font: inherit; padding: 9px 14px; border-radius: 4px; cursor: pointer; margin: 1px 0; }
+.menu button:hover { background: var(--sidebar-hover); }
+.menu button.on { background: var(--primary); color: #fff; font-weight: 700; }
+.menu button:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+
+/* Main */
+.main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.topbar { height: 56px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 20px 0 24px; gap: 28px; }
+.crumb { flex: 1; color: var(--muted); }
+.who { text-align: right; line-height: 1.3; }
+.who b { display: block; }
+.who small { color: var(--muted); }
+.content { flex: 1; overflow: auto; padding: 16px 24px 20px; display: flex; flex-direction: column; min-height: 0; }
+.vhead h2 { font-size: 22px; margin: 0; }
+.vhead p { margin: 4px 0 12px; color: var(--muted); }
+.toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; flex-wrap: wrap; }
+.toolbar .sp { width: 10px; }
+.toolbar label { color: var(--muted); }
+.body { flex: 1; min-height: 0; display: flex; flex-direction: column; gap: 14px; }
+.row { display: flex; gap: 14px; min-height: 0; }
+.col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
+
+.btn { font: inherit; font-weight: 700; border: 0; border-radius: 3px; padding: 0 16px; height: 32px; cursor: pointer; background: var(--primary); color: #fff; white-space: nowrap; }
+.btn:hover { background: var(--primary-hover); }
+.btn.sec { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+.btn.sec:hover { background: var(--bg); }
+.btn.danger { background: var(--danger); }
+.btn.success { background: var(--success); }
+.btn.block { width: 100%; height: 40px; }
+input[type=text], input[type=password], input[type=date], input[type=number], select { font: inherit; height: 30px; border: 1px solid #a3b1c2; border-radius: 2px; padding: 0 8px; background: var(--surface); color: var(--text); }
+input.search { width: 250px; }
+
+.card { background: var(--surface); border: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; min-width: 0; }
+.card > h3 { font-size: 15px; margin: 0; padding: 12px 16px 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.card .pad { padding: 4px 16px 14px; }
+.gridwrap { overflow: auto; flex: 1; min-height: 0; }
+table.grid { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.grid th { position: sticky; top: 0; background: #f8fafc; color: var(--muted); text-align: left; font-weight: 700; height: 36px; padding: 0 10px; white-space: nowrap; border-bottom: 1px solid var(--border); }
+.grid td { height: 32px; padding: 0 10px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.grid tr:nth-child(even) td { background: #fafbfd; }
+.grid tbody tr { cursor: default; }
+.grid tbody tr.sel td { background: var(--primary-soft); }
+.grid tbody tr:hover td { background: #eef4ff; }
+.grid tr.hl td { background: #fef9c3; }
+.grid tr.late td { background: #fee2e2; }
+.grid .r { text-align: right; }
+.st { font-weight: 700; }
+.st.Success { color: var(--success); } .st.Warning { color: var(--warning); } .st.Primary { color: var(--primary); }
+.st.Danger { color: var(--danger); } .st.Info { color: var(--info); } .st.Gray { color: var(--gray); }
+
+.stats { display: flex; gap: 14px; }
+.stat { width: 200px; background: var(--surface); border: 1px solid var(--border); border-left: 4px solid var(--c); padding: 12px 16px; }
+.stat .t { color: var(--muted); }
+.stat .v { font-size: 26px; font-weight: 700; margin: 2px 0; font-variant-numeric: tabular-nums; }
+.stat .n { color: var(--c); font-size: 11.5px; }
+
+/* Room map */
+.legend { display: flex; gap: 22px; align-items: center; margin-bottom: 4px; }
+.legend i { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; }
+.floor { color: var(--muted); font-weight: 700; margin: 8px 0 6px; letter-spacing: .04em; }
+.tiles { display: flex; flex-wrap: wrap; gap: 12px; }
+.tile { width: 170px; height: 108px; border: 1px solid; border-top-width: 5px; padding: 8px 10px; cursor: pointer; position: relative; }
+.tile.sel { outline: 2px solid var(--text); }
+.tile .no { font-size: 21px; font-weight: 700; }
+.tile .lo { color: var(--muted); font-size: 11.5px; }
+.tile .s { font-weight: 700; margin-top: 2px; }
+.tile .x { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+.ctx { position: absolute; z-index: 5; background: var(--surface); border: 1px solid #94a3b8; box-shadow: 0 4px 14px rgba(0,0,0,.15); min-width: 210px; padding: 3px 0; }
+.ctx div { padding: 6px 14px; cursor: pointer; }
+.ctx div:hover { background: var(--primary-soft); }
+.ctx div.dis { color: #94a3b8; cursor: default; background: none; }
+
+/* form rows */
+.kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 10px; }
+.kv span:nth-child(odd) { color: var(--muted); }
+.field { display: grid; grid-template-columns: 150px 1fr; gap: 10px; align-items: center; margin-bottom: 10px; }
+.field label { color: var(--muted); }
+.money { display: flex; justify-content: space-between; padding: 4px 0; }
+.total { font-size: 24px; font-weight: 700; color: var(--primary); }
+.sec-t { color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 11.5px; margin: 14px 0 4px; }
+.bar { height: 8px; background: var(--bg); margin: 4px 0 12px; }
+.bar i { display: block; height: 100%; }
+
+/* tabs */
+.tabs { display: flex; border-bottom: 1px solid #a3b1c2; }
+.tabs button { font: inherit; border: 1px solid transparent; border-bottom: 0; background: transparent; padding: 7px 16px; cursor: pointer; color: var(--text); margin-bottom: -1px; }
+.tabs button.on { background: var(--bg); border-color: #a3b1c2; font-weight: 700; }
+
+/* dialog */
+.modal { position: fixed; inset: 0; background: rgba(15, 23, 42, .35); display: grid; place-items: center; z-index: 20; padding: 16px; }
+.dlg { background: var(--surface); width: 520px; max-width: 100%; border: 1px solid #94a3b8; box-shadow: 0 20px 50px rgba(0,0,0,.3); }
+.dlg .dt { height: 32px; display: flex; align-items: center; justify-content: space-between; padding-left: 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+.dlg .db { padding: 20px 24px 8px; }
+.dlg .df { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 24px 20px; }
+.dlg .field input, .dlg .field select { width: 100%; }
+.note { color: var(--primary); font-weight: 600; margin: 4px 0 10px 160px; }
+.err { color: var(--danger); margin: 4px 0 10px 160px; }
+
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--sidebar); color: #fff; padding: 10px 18px; border-radius: 4px; z-index: 30; max-width: calc(100% - 32px); }
+
+/* Login */
+.login { display: flex; height: 100%; }
+.login .l { width: 400px; background: var(--sidebar); color: #fff; padding: 110px 48px 0; position: relative; }
+.login .l .logo { width: 64px; height: 64px; border-radius: 12px; background: var(--primary); display: grid; place-items: center; font-size: 30px; }
+.login .l h1 { font-size: 32px; margin: 24px 0 6px; }
+.login .l p { color: var(--sidebar-text); font-size: 15px; margin: 0 0 16px; }
+.login .l small { color: var(--sidebar-muted); display: block; line-height: 1.6; }
+.login .l .foot { position: absolute; bottom: 30px; left: 48px; }
+.login .r { flex: 1; padding: 110px 0 0 90px; background: var(--surface); }
+.login .r h2 { font-size: 26px; margin: 0; }
+.login .r input { width: 360px; height: 36px; font-size: 14px; display: block; margin: 6px 0 16px; }
+.login .r .hint { color: var(--muted); margin-top: 18px; line-height: 1.6; font-size: 12px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+<!--ARTIFACT-HEAD-END-->
+</head>
+<body>
+<!--ARTIFACT-BODY-START-->
+<div class="intro">
+  <div>
+    <h1>Bản xem trước giao diện – Hệ thống quản lý khách sạn</h1>
+    <p>Mô phỏng HTML các màn hình của ứng dụng C# WinForms trong repo (cùng bố cục, màu sắc, dữ liệu mẫu). Nhấp menu bên trái để chuyển màn hình. Ứng dụng thật chạy bằng <code>dotnet run</code> trên Windows.</p>
+  </div>
+  <div class="roles"><span>Đăng nhập với vai trò:</span>
+    <button class="btn sec" data-role="Quản trị viên">Quản trị viên</button>
+    <button class="btn sec" data-role="Quản lý">Quản lý</button>
+    <button class="btn sec" data-role="Lễ tân">Lễ tân</button>
+    <button class="btn sec" data-role="Nhân viên buồng phòng">Buồng phòng</button>
+    <button class="btn sec" id="toLogin">Màn hình đăng nhập</button>
+  </div>
+</div>
+<div class="scroller">
+  <div class="window">
+    <div class="titlebar"><span class="ttl" id="wtitle">Hệ thống quản lý khách sạn</span><span class="wbtn">—</span><span class="wbtn">☐</span><span class="wbtn x">✕</span></div>
+    <div class="app" id="app"></div>
+  </div>
+</div>
+<div id="modal"></div>
+<script>
+(() => {
+// ================= Dữ liệu mẫu (giống Data/MockDb.cs) =================
+let seed = 2026;
+const rnd = (a, b) => { // mulberry32: số ngẫu nhiên cố định để dữ liệu mẫu giống nhau mỗi lần mở
+  seed = (seed + 0x6D2B79F5) | 0; let t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return a + Math.floor(((t ^ (t >>> 14)) >>> 0) / 4294967296 * (b - a)); };
+const today = new Date(); today.setHours(0, 0, 0, 0);
+const addD = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+const fd = d => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+const fdm = d => d.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' });
+const fdt = d => fd(d) + ' ' + d.toTimeString().slice(0, 5);
+const N = v => Math.round(v).toLocaleString('vi-VN');
+const S = { Trong: 'Trống', DaDat: 'Đã đặt', DangO: 'Đang ở', DangDon: 'Đang dọn', BaoTri: 'Bảo trì' };
+const COLOR = { 'Trống': 'Success', 'Đã đặt': 'Warning', 'Đang ở': 'Primary', 'Đang dọn': 'Info', 'Bảo trì': 'Danger',
+  'Chờ nhận phòng': 'Warning', 'Đã nhận phòng': 'Primary', 'Hoàn tất': 'Success', 'Đã hủy': 'Gray', 'Đã trả phòng': 'Gray',
+  'Đã thanh toán': 'Success', 'Chưa thanh toán': 'Danger', 'Thanh toán một phần': 'Warning', 'Chưa lập': 'Gray',
+  'Hoạt động': 'Success', 'Đã khóa': 'Danger', 'Đang kinh doanh': 'Success', 'Ngừng kinh doanh': 'Gray' };
+const HEX = { Success: '#16a34a', Warning: '#d97706', Primary: '#1d4ed8', Info: '#0891b2', Danger: '#dc2626', Gray: '#64748b' };
+const st = s => `<span class="st ${COLOR[s] || 'Gray'}">${s}</span>`;
+
+const NV = [
+  ['NV001', 'Nguyễn Tấn Phát', '12/03/1990', '0901234567', 'phat.nt@hotel.vn', 'Quản trị viên'],
+  ['NV002', 'Trần Thị Mai', '04/07/1985', '0912345678', 'mai.tt@hotel.vn', 'Quản lý'],
+  ['NV003', 'Lê Hoàng Nam', '20/11/1998', '0987654321', 'nam.lh@hotel.vn', 'Lễ tân'],
+  ['NV004', 'Phạm Ngọc Anh', '15/01/2000', '0934567890', 'anh.pn@hotel.vn', 'Lễ tân'],
+  ['NV005', 'Võ Văn Hùng', '30/05/1992', '0978123456', 'hung.vv@hotel.vn', 'Nhân viên buồng phòng'],
+  ['NV006', 'Đặng Thu Hà', '09/09/1995', '0965432187', 'ha.dt@hotel.vn', 'Nhân viên buồng phòng'],
+  ['NV007', 'Bùi Minh Tuấn', '18/02/1997', '0944556677', 'tuan.bm@hotel.vn', 'Lễ tân'],
+].map(([ma, ten, ns, sdt, email, cv]) => ({ ma, ten, ns, sdt, email, cv }));
+const TK = [
+  ['TK001', 'admin', 'Quản trị viên', 'NV001', 'Hoạt động'], ['TK002', 'quanly', 'Quản lý', 'NV002', 'Hoạt động'],
+  ['TK003', 'letan', 'Lễ tân', 'NV003', 'Hoạt động'], ['TK004', 'letan2', 'Lễ tân', 'NV004', 'Đã khóa'],
+  ['TK005', 'buongphong', 'Nhân viên buồng phòng', 'NV005', 'Hoạt động'],
+].map(([ma, user, vt, nv, tt]) => ({ ma, user, vt, nv, tt }));
+const LP = [
+  ['LP01', 'Standard', 500000, 2, 'Phòng tiêu chuẩn, 1 giường đôi, 20m²'], ['LP02', 'Superior', 750000, 2, '2 giường đơn, cửa sổ hướng phố, 25m²'],
+  ['LP03', 'Deluxe', 1100000, 3, 'Giường King, ban công, bồn tắm, 32m²'], ['LP04', 'Family', 1500000, 4, '2 giường đôi, phù hợp gia đình, 40m²'],
+  ['LP05', 'Suite', 2500000, 4, 'Phòng khách riêng, view toàn cảnh, 60m²'],
+].map(([ma, ten, gia, sc, mota]) => ({ ma, ten, gia, sc, mota }));
+const tetY = today.getFullYear() + (today.getMonth() > 1 ? 1 : 0);
+const BG = [
+  ['BG001', 'LP03', new Date(tetY, 0, 25), new Date(tetY, 1, 4), 1450000, 'Tết Nguyên đán'],
+  ['BG002', 'LP04', new Date(tetY, 0, 25), new Date(tetY, 1, 4), 1950000, 'Tết Nguyên đán'],
+  ['BG003', 'LP05', new Date(tetY, 0, 25), new Date(tetY, 1, 4), 3200000, 'Tết Nguyên đán'],
+  ['BG004', 'LP01', new Date(today.getFullYear(), 11, 24), new Date(today.getFullYear() + 1, 0, 2), 650000, 'Giáng sinh & Năm mới'],
+].map(([ma, loai, tu, den, gia, note]) => ({ ma, loai, tu, den, gia, note }));
+const loai = m => LP.find(l => l.ma === m);
+const PH = [];
+for (let t = 1; t <= 5; t++) for (let i = 1; i <= 6; i++) {
+  let l = ['', 'LP01', 'LP02', 'LP03', 'LP04', 'LP05'][t];
+  if (t === 2 && i >= 5) l = 'LP01'; if (t === 5 && i >= 4) l = 'LP04';
+  PH.push({ ma: 'P' + t + '0' + i, so: t + '0' + i, tang: t, loai: l, tt: S.Trong });
+}
+const phong = m => PH.find(p => p.ma === m);
+const KH = [['Nguyễn Văn An', 'Q.1, TP.HCM'], ['Trần Thị Bích', 'Q.3, TP.HCM'], ['Lê Minh Châu', 'Hà Nội'], ['Phạm Quốc Dũng', 'Đà Nẵng'],
+  ['Hoàng Thị Em', 'Cần Thơ'], ['Vũ Đức Giang', 'Hải Phòng'], ['Đỗ Thanh Hương', 'Q.7, TP.HCM'], ['Bùi Văn Khoa', 'Biên Hòa, Đồng Nai'],
+  ['Ngô Thị Lan', 'Huế'], ['Dương Quang Minh', 'Nha Trang'], ['Lý Thu Ngân', 'Vũng Tàu'], ['Trịnh Công Phú', 'Thủ Đức, TP.HCM'],
+  ['John Smith', 'London, UK'], ['Kim Min-jun', 'Seoul, Hàn Quốc'], ['Tạ Hồng Quân', 'Bình Dương'], ['Mai Anh Thư', 'Q.10, TP.HCM'],
+  ['Châu Gia Bảo', 'Long An'], ['Hồ Ngọc Diệp', 'Đà Lạt']].map(([ten, dc], i) => {
+  const ngoai = i === 12 || i === 13;
+  return { ma: 'KH' + String(i + 1).padStart(3, '0'), ten, dc, cccd: ngoai ? 'P' + rnd(1000000, 9999999) : '0792' + rnd(10000000, 99999999),
+    sdt: ngoai ? '+82 10' + rnd(1000000, 9999999) : '09' + rnd(10000000, 99999999),
+    email: ten.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase().replace(/ /g, '.') + '@gmail.com' };
+});
+const kh = m => KH.find(k => k.ma === m);
+const DV = [['DV01', 'Ăn sáng buffet', 120000, 'suất'], ['DV02', 'Giặt ủi', 35000, 'kg'], ['DV03', 'Nước suối', 15000, 'chai'], ['DV04', 'Bia lon', 30000, 'lon'],
+  ['DV05', 'Đưa đón sân bay', 250000, 'lượt'], ['DV06', 'Thuê xe máy', 150000, 'ngày'], ['DV07', 'Spa & massage', 400000, 'giờ'], ['DV08', 'Snack minibar', 25000, 'gói'],
+  ['DV09', 'Trang trí phòng', 500000, 'lần']].map(([ma, ten, gia, dvt], i) => ({ ma, ten, gia, dvt, tt: i === 8 ? 'Ngừng kinh doanh' : 'Đang kinh doanh' }));
+const dv = m => DV.find(d => d.ma === m);
+const giaPhong = (ml, d) => (BG.find(b => b.loai === ml && d >= b.tu && d <= b.den) || {}).gia || loai(ml).gia;
+const soDem = (a, b) => Math.max(1, Math.round((new Date(b).setHours(0,0,0,0) - new Date(a).setHours(0,0,0,0)) / 864e5));
+const DP = [], LT = [], CT = [], SD = [], HD = [], TT = [];
+const pad = (p, n, w) => p + String(n).padStart(w, '0');
+const PT = ['Tiền mặt', 'Chuyển khoản', 'Thẻ ngân hàng', 'Ví điện tử'];
+const dvBan = DV.filter(d => d.tt === 'Đang kinh doanh');
+// Lịch sử 6 tháng
+for (let i = 0; i < 900; i++) {
+  const p = PH[rnd(0, PH.length)], k = KH[rnd(0, KH.length)];
+  const nhan = addD(today, -rnd(3, 182)), dem = rnd(1, 5);
+  const dp = { ma: pad('DP', DP.length + 1, 3), ngayDat: addD(nhan, -rnd(1, 20)), nhan, tra: addD(nhan, dem), tt: 'Hoàn tất', kh: k.ma, phong: p.ma, note: '' }; DP.push(dp);
+  const lt = { ma: pad('LT', LT.length + 1, 4), nhan: new Date(+nhan + 14 * 36e5), tra: new Date(+addD(nhan, dem) + 12 * 36e5), gia: giaPhong(p.loai, nhan), tt: 'Đã trả phòng', phong: p.ma, dat: dp.ma }; LT.push(lt);
+  CT.push({ lt: lt.ma, kh: k.ma, vt: 'Khách chính' });
+  for (let j = rnd(0, 4); j > 0; j--) { const d = dvBan[rnd(0, dvBan.length)]; SD.push({ ma: pad('SD', SD.length + 1, 4), lt: lt.ma, dv: d.ma, sl: rnd(1, 4), gia: d.gia, tg: new Date(+nhan + rnd(15, 40) * 36e5) }); }
+  const tp = dem * lt.gia, td = SD.filter(s => s.lt === lt.ma).reduce((a, s) => a + s.sl * s.gia, 0), gg = rnd(0, 10) === 0 ? 100000 : 0;
+  const hd = { ma: pad('HD', HD.length + 1, 4), lt: lt.ma, ngay: lt.tra, tp, td, gg, tong: tp + td - gg, tt: 'Đã thanh toán' }; HD.push(hd);
+  TT.push({ ma: pad('TT', TT.length + 1, 4), hd: hd.ma, pt: PT[rnd(0, 4)], tien: hd.tong, tg: new Date(+lt.tra + rnd(0, 60) * 6e4), tt: 'Thành công' });
+}
+// Đang ở
+[['P102', 0, 2, 1], ['P104', 3, 1, 2], ['P201', 6, 3, 1], ['P203', 12, 0, 3], ['P302', 1, 1, 0], ['P305', 13, 4, 2], ['P402', 4, 2, 2], ['P501', 9, 1, 3]].forEach(([mp, ki, daO, con]) => {
+  const p = phong(mp), k = KH[ki];
+  const dp = { ma: pad('DP', DP.length + 1, 3), ngayDat: addD(today, -daO - rnd(2, 15)), nhan: addD(today, -daO), tra: addD(today, con), tt: 'Đã nhận phòng', kh: k.ma, phong: mp, note: '' }; DP.push(dp);
+  const lt = { ma: pad('LT', LT.length + 1, 4), nhan: new Date(+dp.nhan + 14 * 36e5), tra: new Date(+dp.tra + 12 * 36e5), gia: giaPhong(p.loai, dp.nhan), tt: 'Đang ở', phong: mp, dat: dp.ma }; LT.push(lt);
+  CT.push({ lt: lt.ma, kh: k.ma, vt: 'Khách chính' });
+  if (ki % 3 === 0) CT.push({ lt: lt.ma, kh: KH[(ki + 7) % KH.length].ma, vt: 'Khách đi cùng' });
+  for (let d = 0; d <= daO; d++) { if (rnd(0, 3) === 0) continue; const x = dvBan[rnd(0, dvBan.length)]; SD.push({ ma: pad('SD', SD.length + 1, 4), lt: lt.ma, dv: x.ma, sl: rnd(1, 4), gia: x.gia, tg: new Date(+addD(dp.nhan, d) + rnd(8, 21) * 36e5) }); }
+  p.tt = S.DangO;
+});
+[['P101', 2, 0, 2], ['P204', 5, 0, 1], ['P303', 7, 0, 3], ['P401', 8, 1, 2], ['P106', 10, 2, 1], ['P304', 11, 3, 4], ['P502', 14, 5, 2], ['P205', 15, 7, 3]].forEach(([mp, ki, sau, dem]) => {
+  DP.push({ ma: pad('DP', DP.length + 1, 3), ngayDat: addD(today, -rnd(1, 20)), nhan: addD(today, sau), tra: addD(today, sau + dem), tt: 'Chờ nhận phòng', kh: KH[ki].ma, phong: mp, note: sau === 0 ? 'Khách đến khoảng 14h' : '' });
+  if (sau === 0) phong(mp).tt = S.DaDat;
+});
+DP.push({ ma: pad('DP', DP.length + 1, 3), ngayDat: addD(today, -6), nhan: addD(today, 1), tra: addD(today, 3), tt: 'Đã hủy', kh: KH[16].ma, phong: 'P301', note: 'Khách đổi lịch trình' });
+[['P105', S.DangDon], ['P206', S.DangDon], ['P403', S.DangDon], ['P306', S.BaoTri], ['P504', S.BaoTri]].forEach(([m, t]) => phong(m).tt = t);
+const khChinh = l => kh((CT.find(c => c.lt === l.ma && c.vt === 'Khách chính') || CT.find(c => c.lt === l.ma) || {}).kh) || { ten: '' };
+const tienDV = l => SD.filter(s => s.lt === l.ma).reduce((a, s) => a + s.sl * s.gia, 0);
+const hdOf = l => HD.find(h => h.lt === l.ma);
+const daThu = (a, b) => HD.filter(h => h.tt === 'Đã thanh toán' && h.ngay >= a && h.ngay < addD(b, 1));
+
+// ================= Phân quyền & menu (giống Data/Menu.cs) =================
+const MENU = [
+  ['tong_quan', 'Tổng quan', 'Bảng điều khiển', ''], ['tai_khoan', '1. Quản lý hệ thống', 'Tài khoản', '1.3'],
+  ['nhan_vien', '1. Quản lý hệ thống', 'Nhân viên', '1.4'], ['phan_quyen', '1. Quản lý hệ thống', 'Phân quyền', '1.5'],
+  ['loai_phong', '2. Quản lý phòng', 'Loại phòng & bảng giá', '2.1'], ['phong', '2. Quản lý phòng', 'Sơ đồ phòng', '2.2–2.4'],
+  ['khach_hang', '3. Khách hàng & đặt phòng', 'Khách hàng', '3.1'], ['dat_phong', '3. Khách hàng & đặt phòng', 'Đặt phòng', '3.2–3.5'],
+  ['nhan_phong', '4. Lưu trú & dịch vụ', 'Nhận phòng', '4.1'], ['luu_tru', '4. Lưu trú & dịch vụ', 'Khách đang lưu trú', '4.2, 4.5'],
+  ['dich_vu', '4. Lưu trú & dịch vụ', 'Danh mục dịch vụ', '4.3'], ['su_dung_dv', '4. Lưu trú & dịch vụ', 'Ghi nhận dịch vụ', '4.4'],
+  ['tra_phong', '5. Thanh toán', 'Trả phòng & thanh toán', '5.1–5.5'], ['hoa_don', '5. Thanh toán', 'Tra cứu hóa đơn', '5.6'],
+  ['thong_ke', '6. Thống kê & báo cáo', 'Thống kê & báo cáo', '6.1–6.5'],
+].map(([key, nhom, ten, bfd]) => ({ key, nhom, ten, bfd }));
+const ROLES = ['Quản trị viên', 'Quản lý', 'Lễ tân', 'Nhân viên buồng phòng'];
+const PQ = {
+  'Quản trị viên': new Set(MENU.map(m => m.key)),
+  'Quản lý': new Set(['tong_quan', 'phong', 'dat_phong', 'luu_tru', 'hoa_don', 'thong_ke']),
+  'Lễ tân': new Set(['tong_quan', 'phong', 'khach_hang', 'dat_phong', 'nhan_phong', 'luu_tru', 'su_dung_dv', 'tra_phong', 'hoa_don']),
+  'Nhân viên buồng phòng': new Set(['phong']),
+};
+const USER = { 'Quản trị viên': 'NV001', 'Quản lý': 'NV002', 'Lễ tân': 'NV003', 'Nhân viên buồng phòng': 'NV005' };
+
+// ================= Khung ứng dụng =================
+const app = document.getElementById('app'), modal = document.getElementById('modal');
+let role = null, active = null, state = {};
+const toast = msg => { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), 2600); };
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function grid(cols, rows, opts = {}) {
+  const head = cols.map(c => `<th class="${c.r ? 'r' : ''}" style="${c.w ? 'width:' + c.w + 'px' : ''}">${c.h}</th>`).join('');
+  const body = rows.map((r, i) => `<tr data-i="${i}" class="${opts.rowClass ? opts.rowClass(r) : ''} ${opts.sel === i ? 'sel' : ''}">` +
+    cols.map(c => { const v = c.f(r); return `<td class="${c.r ? 'r' : ''}">${c.s ? st(v) : esc(v)}</td>`; }).join('') + '</tr>').join('');
+  return `<div class="gridwrap"><table class="grid"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>`;
+}
+const card = (title, inner, style = '', right = '') => `<div class="card" style="${style}">${title ? `<h3><span>${title}</span>${right}</h3>` : ''}${inner}</div>`;
+const statCard = (t, v, c, n) => `<div class="stat" style="--c:var(--${c})"><div class="t">${t}</div><div class="v">${v}</div><div class="n">${n}</div></div>`;
+const head = (t, s) => `<div class="vhead"><h2>${t}</h2><p>${s}</p></div>`;
+const sel = (items, val, id, w = 160) => `<select id="${id}" style="width:${w}px">${items.map(i => `<option ${i === val ? 'selected' : ''}>${i}</option>`).join('')}</select>`;
+const short = v => v >= 1e9 ? (v / 1e9).toFixed(2).replace('.', ',') + ' tỷ' : v >= 1e6 ? (v / 1e6).toFixed(1).replace('.', ',') + ' tr' : N(v);
+
+function chart(data, series, colors, h = 230, perBar = false) {
+  const W = 760, H = h, L = 56, T = series.length > 1 ? 30 : 12, B = 26, R = 10;
+  const max0 = Math.max(1, ...data.map(d => d[1].reduce((a, b) => a + b, 0)));
+  const mag = Math.pow(10, Math.floor(Math.log10(max0 / 4))), n = max0 / 4 / mag, step = (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * mag;
+  const max = Math.ceil(max0 / step) * step, ah = H - T - B, aw = W - L - R, slot = aw / data.length, bw = Math.min(42, slot * .6);
+  const shortN = v => v >= 1e6 ? +(v / 1e6).toFixed(1) + 'tr' : v >= 1e3 ? +(v / 1e3).toFixed(1) + 'k' : String(v);
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="display:block;font-size:11px">`;
+  for (let v = 0; v <= max + 1e-6; v += step) { const y = T + ah - v / max * ah; s += `<line x1="${L}" x2="${W - R}" y1="${y}" y2="${y}" stroke="#e2e8f0"/><text x="${L - 6}" y="${y + 4}" text-anchor="end" fill="#64748b">${shortN(v)}</text>`; }
+  const every = Math.max(1, Math.ceil(data.length / (aw / 50)));
+  data.forEach(([lab, vals], i) => {
+    const x = L + slot * i + (slot - bw) / 2; let y = T + ah;
+    vals.forEach((v, k) => { const hh = v / max * ah; y -= hh; s += `<rect x="${x}" y="${y}" width="${bw}" height="${hh}" fill="${colors[perBar ? i : k]}"/>`; });
+    if (data.length <= 14) s += `<text x="${x + bw / 2}" y="${y - 4}" text-anchor="middle" fill="#64748b">${shortN(vals.reduce((a, b) => a + b, 0))}</text>`;
+    if (i % every === 0) s += `<text x="${x + bw / 2}" y="${H - 8}" text-anchor="middle" fill="#64748b">${lab}</text>`;
+  });
+  if (series.length > 1) { let lx = L; series.forEach((n, k) => { s += `<rect x="${lx}" y="6" width="12" height="12" fill="${colors[k]}"/><text x="${lx + 16}" y="16" fill="#64748b">${n}</text>`; lx += n.length * 7 + 40; }); }
+  return s + '</svg>';
+}
+
+function shell() {
+  const nv = NV.find(n => n.ma === USER[role]);
+  let menu = '', g = null;
+  MENU.filter(m => PQ[role].has(m.key)).forEach(m => {
+    if (m.nhom !== g && m.nhom !== 'Tổng quan') menu += `<div class="grp">${m.nhom}</div>`;
+    g = m.nhom; menu += `<button data-k="${m.key}">${m.ten}</button>`;
+  });
+  app.innerHTML = `<div class="side"><div class="brand"><span class="logo">🏨</span>SÀI GÒN HOTEL</div><div class="menu">${menu}</div></div>
+    <div class="main"><div class="topbar"><div class="crumb" id="crumb"></div><div style="color:var(--muted)">${today.toLocaleDateString('vi-VN', { weekday: 'long', day: '2-digit', month: '2-digit', year: 'numeric' })}</div>
+    <div class="who"><b>${nv.ten}</b><small>${role}</small></div><button class="btn sec" id="logout">Đăng xuất</button></div><div class="content" id="content"></div></div>`;
+  app.querySelectorAll('.menu button').forEach(b => b.onclick = () => go(b.dataset.k));
+  document.getElementById('logout').onclick = () => confirmBox('Bạn có chắc muốn đăng xuất?', login);
+  go(MENU.find(m => PQ[role].has(m.key)).key);
+}
+function go(key) {
+  active = key; state = {};
+  const m = MENU.find(x => x.key === key);
+  app.querySelectorAll('.menu button').forEach(b => b.classList.toggle('on', b.dataset.k === key));
+  document.getElementById('crumb').textContent = m.nhom === 'Tổng quan' ? 'Tổng quan' : `${m.nhom}  ›  ${m.ten}`;
+  render();
+}
+function render() { const c = document.getElementById('content'); c.innerHTML = VIEWS[active](); (BIND[active] || (() => {}))(c); }
+const demo = msg => toast(msg || 'Bản xem trước: chức năng này chạy đầy đủ trong ứng dụng C#.');
+
+function dialog(title, bodyHtml, onOk, okText = 'Lưu') {
+  modal.innerHTML = `<div class="modal"><div class="dlg" role="dialog" aria-label="${title}"><div class="dt"><span>${title}</span><span class="wbtn" id="dx" style="width:40px;text-align:center;cursor:pointer">✕</span></div>
+    <div class="db">${bodyHtml}<div class="err" id="derr"></div></div><div class="df"><button class="btn" id="dok">${okText}</button><button class="btn sec" id="dcancel">Hủy</button></div></div></div>`;
+  const close = () => modal.innerHTML = '';
+  modal.querySelector('#dx').onclick = close; modal.querySelector('#dcancel').onclick = close;
+  modal.querySelector('#dok').onclick = () => { const e = onOk ? onOk(modal) : null; if (e) modal.querySelector('#derr').textContent = e; else close(); };
+  return modal;
+}
+const confirmBox = (msg, yes) => dialog('Xác nhận', `<p style="margin:0 0 8px">${msg}</p>`, () => { yes(); }, 'Đồng ý');
+function rowSelect(c, rows, onSel) {
+  c.querySelectorAll('.grid tbody tr').forEach(tr => tr.onclick = () => { state.sel = +tr.dataset.i; onSel ? onSel(rows[state.sel]) : render(); });
+}
+
+// ================= Màn hình =================
+const VIEWS = {}, BIND = {};
+
+VIEWS.tong_quan = () => {
+  const trong = PH.filter(p => p.tt === S.Trong).length, dangO = PH.filter(p => p.tt === S.DangO).length;
+  const den = DP.filter(d => d.tt === 'Chờ nhận phòng' && +d.nhan === +today), di = LT.filter(l => l.tt === 'Đang ở' && l.tra < addD(today, 1));
+  const thang = daThu(new Date(today.getFullYear(), today.getMonth(), 1), today).reduce((a, h) => a + h.tong, 0);
+  const data = [...Array(14)].map((_, i) => { const d = addD(today, i - 13), h = daThu(d, d); return [fdm(d), [h.reduce((a, x) => a + x.tp - x.gg, 0), h.reduce((a, x) => a + x.td, 0)]]; });
+  const bars = Object.values(S).map(s => { const n = PH.filter(p => p.tt === s).length;
+    return `<div class="money"><span>${s}</span><b>${n}</b></div><div class="bar"><i style="width:${n / PH.length * 100}%;background:${HEX[COLOR[s]]}"></i></div>`; }).join('');
+  const kcols = [{ h: 'Phòng', w: 70, f: r => r[0] }, { h: 'Khách hàng', f: r => r[1] }, { h: 'SĐT', w: 120, f: r => r[2] }, { h: 'Ghi chú', w: 150, f: r => r[3] }];
+  return head(`Xin chào, ${NV.find(n => n.ma === USER[role]).ten}!`, `Tình hình khách sạn hôm nay, ${fd(today)}.`) +
+    `<div class="body"><div class="stats">${statCard('Phòng trống', trong + '/' + PH.length, 'success', 'sẵn sàng đón khách')}${statCard('Đang có khách', dangO, 'primary', 'công suất ' + Math.round(dangO / PH.length * 100) + '%')}
+    ${statCard('Khách đến hôm nay', den.length, 'warning', 'đặt phòng chờ nhận')}${statCard('Trả phòng hôm nay', di.length, 'danger', 'gồm cả trả trễ')}${statCard('Doanh thu tháng này', short(thang), 'violet', N(thang) + ' đ')}</div>
+    <div class="row" style="flex:1">${card('Doanh thu 14 ngày gần nhất', `<div class="pad">${chart(data, ['Tiền phòng', 'Tiền dịch vụ'], ['#1d4ed8', '#0891b2'], 230)}</div>`, 'flex:1')}
+    ${card('Tình trạng phòng', `<div class="pad">${bars}<button class="btn sec block" id="gomap">Mở sơ đồ phòng →</button></div>`, 'width:340px')}</div>
+    <div class="row" style="height:200px">${card(`Khách đến hôm nay (${den.length})`, grid(kcols, den.map(d => [phong(d.phong).so, kh(d.kh).ten, kh(d.kh).sdt, d.note])), 'flex:1')}
+    ${card(`Khách trả phòng hôm nay (${di.length})`, grid(kcols, di.map(l => [phong(l.phong).so, khChinh(l).ten, khChinh(l).sdt || '', ''])), 'flex:1')}</div></div>`;
+};
+BIND.tong_quan = c => { const b = c.querySelector('#gomap'); if (b) b.onclick = () => PQ[role].has('phong') && go('phong'); };
+
+VIEWS.tai_khoan = () => head('Quản lý tài khoản', 'Tạo tài khoản đăng nhập cho nhân viên, gán vai trò, khóa/mở khóa và đặt lại mật khẩu.') +
+  `<div class="toolbar"><input class="search" type="text" placeholder="🔍  Tìm theo tên đăng nhập, họ tên..." id="q">${sel(['Tất cả vai trò', ...ROLES], 'Tất cả vai trò', 'r', 180)}<span class="sp"></span>
+  <button class="btn" id="add">+ Thêm tài khoản</button><button class="btn sec d">Sửa</button><button class="btn sec" id="lock">Khóa / Mở khóa</button><button class="btn sec d">Đặt lại mật khẩu</button><button class="btn danger d">Xóa</button></div>
+  <div class="body">${card('', grid([{ h: 'Mã TK', w: 80, f: t => t.ma }, { h: 'Tên đăng nhập', w: 150, f: t => t.user }, { h: 'Nhân viên', f: t => NV.find(n => n.ma === t.nv).ten },
+    { h: 'Chức vụ', w: 180, f: t => NV.find(n => n.ma === t.nv).cv }, { h: 'Vai trò', w: 180, f: t => t.vt }, { h: 'Trạng thái', w: 120, s: 1, f: t => t.tt }], TK, { sel: state.sel }), 'flex:1')}</div>`;
+BIND.tai_khoan = c => {
+  rowSelect(c, TK); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  c.querySelector('#lock').onclick = () => { const t = TK[state.sel]; if (!t) return toast('Hãy chọn một tài khoản.'); if (t.ma === 'TK001') return toast('Không thể khóa tài khoản đang đăng nhập.'); t.tt = t.tt === 'Hoạt động' ? 'Đã khóa' : 'Hoạt động'; render(); };
+  c.querySelector('#add').onclick = () => dialog('Thêm tài khoản', `<div class="field"><label>Tên đăng nhập</label><input type="text" id="u"></div><div class="field"><label>Mật khẩu</label><input type="password" id="p"></div>
+    <div class="field"><label>Nhân viên</label>${sel(NV.map(n => n.ma + ' - ' + n.ten), '', 'n', 300)}</div><div class="field"><label>Vai trò</label>${sel(ROLES, 'Lễ tân', 'v', 300)}</div>`, m => {
+    const u = m.querySelector('#u').value.trim(); if (!u) return 'Tên đăng nhập không được để trống.'; if (TK.some(t => t.user === u)) return 'Tên đăng nhập đã tồn tại.';
+    if (m.querySelector('#p').value.length < 3) return 'Mật khẩu tối thiểu 3 ký tự.';
+    TK.push({ ma: pad('TK', TK.length + 1, 3), user: u, vt: m.querySelector('#v').value, nv: m.querySelector('#n').value.split(' - ')[0], tt: 'Hoạt động' }); render();
+  });
+};
+
+VIEWS.nhan_vien = () => head('Quản lý nhân viên', 'Hồ sơ nhân viên khách sạn: lễ tân, buồng phòng, quản lý.') +
+  `<div class="toolbar"><input class="search" type="text" placeholder="🔍  Tìm theo mã, họ tên, SĐT..."><span class="sp"></span><button class="btn d">+ Thêm nhân viên</button><button class="btn sec d">Sửa</button><button class="btn danger d">Xóa</button></div>
+  <div class="body">${card('', grid([{ h: 'Mã NV', w: 80, f: n => n.ma }, { h: 'Họ tên', f: n => n.ten }, { h: 'Ngày sinh', w: 110, f: n => n.ns }, { h: 'Số điện thoại', w: 130, f: n => n.sdt },
+    { h: 'Email', w: 200, f: n => n.email }, { h: 'Chức vụ', w: 180, f: n => n.cv }], NV, { sel: state.sel }), 'flex:1')}</div>`;
+BIND.nhan_vien = c => { rowSelect(c, NV); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo()); };
+
+VIEWS.phan_quyen = () => head('Phân quyền người dùng', 'Chọn chức năng mà mỗi vai trò được sử dụng. Thay đổi có hiệu lực từ lần đăng nhập tiếp theo.') +
+  `<div class="toolbar"><button class="btn success" id="save">Lưu phân quyền</button><button class="btn sec" id="reset">Khôi phục</button></div>
+  <div class="body">${card('', `<div class="gridwrap"><table class="grid"><thead><tr><th style="width:230px">Nhóm chức năng</th><th style="width:70px">BFD</th><th>Chức năng</th>${ROLES.map(r => `<th style="width:150px;text-align:center">${r}</th>`).join('')}</tr></thead><tbody>
+  ${MENU.map(m => `<tr><td>${m.nhom}</td><td>${m.bfd}</td><td>${m.ten}</td>${ROLES.map(r => `<td style="text-align:center"><input type="checkbox" data-k="${m.key}" data-r="${r}" ${PQ[r].has(m.key) ? 'checked' : ''} ${r === 'Quản trị viên' ? 'disabled' : ''}></td>`).join('')}</tr>`).join('')}
+  </tbody></table></div>`, 'flex:1')}</div>`;
+BIND.phan_quyen = c => {
+  c.querySelector('#save').onclick = () => { c.querySelectorAll('input[type=checkbox]').forEach(x => x.checked ? PQ[x.dataset.r].add(x.dataset.k) : PQ[x.dataset.r].delete(x.dataset.k)); toast('Đã lưu phân quyền. Thử đăng nhập lại bằng vai trò khác để thấy menu thay đổi.'); };
+  c.querySelector('#reset').onclick = render;
+};
+
+VIEWS.loai_phong = () => {
+  const l = LP[state.sel ?? 0];
+  return head('Loại phòng & bảng giá', 'Cấu hình loại phòng, giá cơ bản và giá áp dụng theo khoảng thời gian (lễ, Tết, cao điểm).') +
+  `<div class="toolbar"><button class="btn d">+ Thêm loại phòng</button><button class="btn sec d">Sửa</button><button class="btn danger d">Xóa</button></div>
+  <div class="body">${card('', grid([{ h: 'Mã loại', w: 80, f: x => x.ma }, { h: 'Tên loại', w: 130, f: x => x.ten }, { h: 'Giá cơ bản / đêm', w: 150, r: 1, f: x => N(x.gia) },
+    { h: 'Sức chứa', w: 90, r: 1, f: x => x.sc }, { h: 'Số phòng', w: 90, r: 1, f: x => PH.filter(p => p.loai === x.ma).length }, { h: 'Mô tả', f: x => x.mota }], LP, { sel: state.sel ?? 0 }), 'height:240px')}
+  ${card('Bảng giá theo thời gian - ' + l.ten, grid([{ h: 'Mã giá', w: 80, f: b => b.ma }, { h: 'Từ ngày', w: 120, f: b => fd(b.tu) }, { h: 'Đến ngày', w: 120, f: b => fd(b.den) },
+    { h: 'Giá áp dụng / đêm', w: 160, r: 1, f: b => N(b.gia) }, { h: 'Ghi chú', f: b => b.note }], BG.filter(b => b.loai === l.ma)), 'flex:1', '<span><button class="btn sec d">+ Thêm giá áp dụng</button> <button class="btn sec d">Xóa</button></span>')}</div>`;
+};
+BIND.loai_phong = c => { rowSelect(c.querySelector('.card'), LP); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo()); };
+
+VIEWS.phong = () => {
+  const f = state.f || { tang: 'Tất cả tầng', loai: 'Tất cả loại', tt: 'Tất cả trạng thái', q: '' };
+  const list = PH.filter(p => (f.tang === 'Tất cả tầng' || 'Tầng ' + p.tang === f.tang) && (f.loai === 'Tất cả loại' || loai(p.loai).ten === f.loai) && (f.tt === 'Tất cả trạng thái' || p.tt === f.tt) && p.so.includes(f.q));
+  const legend = Object.values(S).map(s => `<span><i style="background:${HEX[COLOR[s]]}"></i>${s} (${PH.filter(p => p.tt === s).length})</span>`).join('');
+  let map = '';
+  [...new Set(list.map(p => p.tang))].forEach(t => {
+    map += `<div class="floor">TẦNG ${t}</div><div class="tiles">` + list.filter(p => p.tang === t).map(p => {
+      const c = HEX[COLOR[p.tt]]; let x = N(giaPhong(p.loai, today)) + ' đ/đêm';
+      const lt = LT.find(l => l.phong === p.ma && l.tt === 'Đang ở'), dp = DP.find(d => d.phong === p.ma && d.tt === 'Chờ nhận phòng');
+      if (p.tt === S.DangO && lt) x = khChinh(lt).ten + '  •  trả ' + fdm(lt.tra); else if (p.tt === S.DaDat && dp) x = kh(dp.kh).ten + '  •  đến ' + fdm(dp.nhan);
+      return `<div class="tile ${state.room === p.ma ? 'sel' : ''}" data-p="${p.ma}" tabindex="0" style="border-color:${c}66;border-top-color:${c};background:${c}17"><div class="no">${p.so}</div><div class="lo">${loai(p.loai).ten}</div><div class="s" style="color:${c}">${p.tt}</div><div class="x">${esc(x)}</div></div>`;
+    }).join('') + '</div>';
+  });
+  const bp = role === 'Nhân viên buồng phòng';
+  return head('Sơ đồ phòng', 'Danh sách phòng theo tầng và trạng thái thời gian thực. Nhấp chuột phải vào phòng để cập nhật trạng thái.') +
+  `<div class="toolbar"><input type="text" placeholder="🔍  Số phòng..." id="q" style="width:120px" value="${f.q}">${sel(['Tất cả tầng', 'Tầng 1', 'Tầng 2', 'Tầng 3', 'Tầng 4', 'Tầng 5'], f.tang, 'tang', 120)}
+  ${sel(['Tất cả loại', ...LP.map(l => l.ten)], f.loai, 'loai', 140)}${sel(['Tất cả trạng thái', ...Object.values(S)], f.tt, 'tt', 150)}<span class="sp"></span>
+  ${bp ? '' : '<button class="btn sec" id="find">Tra cứu phòng trống</button>'}<button class="btn sec" id="upd">Cập nhật trạng thái</button>${role === 'Quản trị viên' ? '<button class="btn d">+ Thêm phòng</button><button class="btn sec d">Sửa</button>' : ''}</div>
+  <div class="legend">${legend}</div><div style="overflow:auto;flex:1;padding-bottom:10px;position:relative" id="mapwrap">${map}</div>`;
+};
+BIND.phong = c => {
+  const f = state.f || (state.f = { tang: 'Tất cả tầng', loai: 'Tất cả loại', tt: 'Tất cả trạng thái', q: '' });
+  ['tang', 'loai', 'tt'].forEach(k => c.querySelector('#' + k).onchange = e => { f[k] = e.target.value; render(); });
+  c.querySelector('#q').oninput = e => { f.q = e.target.value; const pos = e.target.selectionStart; render(); const q = document.querySelector('#q'); q.focus(); q.setSelectionRange(pos, pos); };
+  c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  const canChange = p => p.tt !== S.DangO && p.tt !== S.DaDat;
+  const openStatus = p => {
+    if (!canChange(p)) return toast(`Phòng ${p.so} đang "${p.tt}". Trạng thái này do hệ thống cập nhật khi nhận/trả phòng.`);
+    dialog('Cập nhật trạng thái phòng ' + p.so, `<p style="margin:0 0 12px;color:${HEX[COLOR[p.tt]]};font-weight:600">Trạng thái hiện tại: ${p.tt}</p><div class="field"><label>Trạng thái mới</label>${sel([S.Trong, S.DangDon, S.BaoTri], p.tt, 'ns', 300)}</div><p style="color:var(--muted);margin:0 0 0 160px">Dọn dẹp xong → "Trống" (sẵn sàng đón khách).</p>`,
+      m => { p.tt = m.querySelector('#ns').value; render(); });
+  };
+  c.querySelectorAll('.tile').forEach(t => {
+    const p = phong(t.dataset.p);
+    t.onclick = () => { state.room = p.ma; c.querySelectorAll('.tile').forEach(x => x.classList.toggle('sel', x === t)); };
+    t.ondblclick = () => openStatus(p);
+    t.oncontextmenu = e => {
+      e.preventDefault(); document.querySelectorAll('.ctx').forEach(x => x.remove());
+      const m = document.createElement('div'); m.className = 'ctx'; m.style.left = e.clientX + 'px'; m.style.top = e.clientY + 'px'; m.style.position = 'fixed';
+      m.innerHTML = `<div class="dis">Phòng ${p.so}</div>` + [S.Trong, S.DangDon, S.BaoTri].map(s => `<div data-s="${s}" class="${p.tt === s || !canChange(p) ? 'dis' : ''}">Chuyển sang: ${s}</div>`).join('');
+      m.onclick = ev => { const s = ev.target.dataset.s; if (s && !ev.target.classList.contains('dis')) { p.tt = s; render(); } m.remove(); };
+      document.body.appendChild(m); setTimeout(() => document.addEventListener('click', () => m.remove(), { once: true }));
+    };
+  });
+  c.querySelector('#upd').onclick = () => state.room ? openStatus(phong(state.room)) : toast('Hãy chọn một phòng trên sơ đồ.');
+  const fb = c.querySelector('#find'); if (fb) fb.onclick = () => {
+    const free = PH.filter(p => p.tt !== S.BaoTri && !DP.some(d => d.phong === p.ma && d.tt === 'Chờ nhận phòng' && d.nhan < addD(today, 1)) && !LT.some(l => l.phong === p.ma && l.tt === 'Đang ở'));
+    dialog('Tra cứu phòng trống', `<p style="margin:0 0 10px;color:var(--success);font-weight:700">Tìm thấy ${free.length} phòng trống từ ${fd(today)} đến ${fd(addD(today, 1))} (1 đêm).</p><div style="max-height:320px;overflow:auto;border:1px solid var(--border)">` +
+      grid([{ h: 'Phòng', w: 70, f: p => p.so }, { h: 'Tầng', w: 50, r: 1, f: p => p.tang }, { h: 'Loại', w: 100, f: p => loai(p.loai).ten }, { h: 'Sức chứa', w: 80, r: 1, f: p => loai(p.loai).sc }, { h: 'Giá / đêm', r: 1, f: p => N(giaPhong(p.loai, today)) }], free) + '</div>', null, 'Đóng');
+  };
+};
+
+VIEWS.khach_hang = () => {
+  const k = KH[state.sel ?? 0];
+  const hist = CT.filter(c => c.kh === k.ma).map(c => ({ c, l: LT.find(l => l.ma === c.lt) })).sort((a, b) => b.l.nhan - a.l.nhan);
+  return head('Quản lý khách hàng', 'Thông tin khách hàng và lịch sử lưu trú tại khách sạn.') +
+  `<div class="toolbar"><input class="search" style="width:300px" type="text" placeholder="🔍  Tìm theo tên, CCCD/hộ chiếu, SĐT..."><span class="sp"></span><button class="btn" id="add">+ Thêm khách hàng</button><button class="btn sec d">Sửa</button><button class="btn danger d">Xóa</button></div>
+  <div class="body">${card('', grid([{ h: 'Mã KH', w: 80, f: x => x.ma }, { h: 'Họ tên', f: x => x.ten }, { h: 'CCCD / Hộ chiếu', w: 150, f: x => x.cccd }, { h: 'Số điện thoại', w: 130, f: x => x.sdt },
+    { h: 'Email', w: 220, f: x => x.email }, { h: 'Địa chỉ', w: 170, f: x => x.dc }], KH, { sel: state.sel ?? 0 }), 'flex:1')}
+  ${card('Lịch sử lưu trú - ' + k.ten, grid([{ h: 'Mã lưu trú', w: 100, f: x => x.l.ma }, { h: 'Phòng', w: 80, f: x => phong(x.l.phong).so }, { h: 'Ngày nhận', w: 140, f: x => fdt(x.l.nhan) },
+    { h: 'Ngày trả', w: 140, f: x => fdt(x.l.tra) }, { h: 'Vai trò', w: 130, f: x => x.c.vt }, { h: 'Trạng thái', s: 1, f: x => x.l.tt }], hist), 'height:220px')}</div>`;
+};
+BIND.khach_hang = c => {
+  rowSelect(c.querySelector('.card'), KH); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  c.querySelector('#add').onclick = () => dialog('Thêm khách hàng', ['Họ tên', 'CCCD / Hộ chiếu', 'Số điện thoại', 'Email', 'Địa chỉ'].map((l, i) => `<div class="field"><label>${l}</label><input type="text" id="f${i}"></div>`).join(''), m => {
+    const v = [0, 1, 2, 3, 4].map(i => m.querySelector('#f' + i).value.trim());
+    if (!v[0]) return 'Họ tên không được để trống.'; if (v[1].length < 6) return 'CCCD / hộ chiếu không hợp lệ.'; if (v[2].length < 9) return 'Số điện thoại không hợp lệ.';
+    KH.push({ ma: pad('KH', KH.length + 1, 3), ten: v[0], cccd: v[1], sdt: v[2], email: v[3], dc: v[4] }); state.sel = KH.length - 1; render();
+  });
+};
+
+const dpRow = d => { const p = phong(d.phong), dem = soDem(d.nhan, d.tra); return { d, ten: kh(d.kh).ten, sdt: kh(d.kh).sdt, so: p.so, loai: loai(p.loai).ten, dem, tam: dem * giaPhong(p.loai, d.nhan) }; };
+VIEWS.dat_phong = () => {
+  const stt = state.stt || 'Chờ nhận phòng';
+  const rows = DP.filter(d => (stt === 'Tất cả trạng thái' || d.tt === stt) && d.nhan >= addD(today, -30) && d.nhan <= addD(today, 60)).map(dpRow).sort((a, b) => a.d.nhan - b.d.nhan);
+  state.rows = rows;
+  return head('Đặt phòng', 'Tiếp nhận, sửa, hủy và tra cứu đặt phòng. Hệ thống tự kiểm tra để tránh trùng phòng.') +
+  `<div class="toolbar"><input class="search" type="text" placeholder="🔍  Mã đặt, tên khách, SĐT, số phòng...">${sel(['Tất cả trạng thái', 'Chờ nhận phòng', 'Đã nhận phòng', 'Hoàn tất', 'Đã hủy'], stt, 'stt', 160)}
+  <label>Nhận từ</label><input type="date" value="${addD(today, -30).toISOString().slice(0, 10)}"><label>đến</label><input type="date" value="${addD(today, 60).toISOString().slice(0, 10)}"><span class="sp"></span>
+  <button class="btn" id="add">+ Đặt phòng mới</button><button class="btn sec d">Sửa</button><button class="btn danger" id="cancel">Hủy đặt phòng</button>${PQ[role].has('nhan_phong') ? '<button class="btn success" id="ci">Nhận phòng →</button>' : ''}</div>
+  <div class="body">${card('', grid([{ h: 'Mã đặt', w: 75, f: r => r.d.ma }, { h: 'Khách hàng', f: r => r.ten }, { h: 'SĐT', w: 110, f: r => r.sdt }, { h: 'Phòng', w: 65, f: r => r.so }, { h: 'Loại', w: 85, f: r => r.loai },
+    { h: 'Nhận phòng', w: 100, f: r => fd(r.d.nhan) }, { h: 'Trả phòng', w: 100, f: r => fd(r.d.tra) }, { h: 'Đêm', w: 50, r: 1, f: r => r.dem }, { h: 'Tạm tính', w: 110, r: 1, f: r => N(r.tam) },
+    { h: 'Trạng thái', w: 135, s: 1, f: r => r.d.tt }, { h: 'Ghi chú', w: 150, f: r => r.d.note }], rows, { sel: state.sel }), 'flex:1')}</div>`;
+};
+BIND.dat_phong = c => {
+  rowSelect(c, state.rows); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  c.querySelector('#stt').onchange = e => { state.stt = e.target.value; state.sel = null; render(); };
+  c.querySelector('#cancel').onclick = () => { const r = state.rows[state.sel]; if (!r) return toast('Hãy chọn một đặt phòng.'); if (r.d.tt !== 'Chờ nhận phòng') return toast('Chỉ hủy được đặt phòng đang "Chờ nhận phòng".');
+    confirmBox(`Hủy đặt phòng ${r.d.ma} của ${r.ten} (phòng ${r.so}, ${fdm(r.d.nhan)} - ${fdm(r.d.tra)})?`, () => { r.d.tt = 'Đã hủy'; if (phong(r.d.phong).tt === S.DaDat) phong(r.d.phong).tt = S.Trong; render(); }); };
+  const ci = c.querySelector('#ci'); if (ci) ci.onclick = () => { const r = state.rows[state.sel]; go('nhan_phong'); if (r && r.d.tt === 'Chờ nhận phòng') { state.pre = r.d.ma; render(); } };
+  c.querySelector('#add').onclick = () => {
+    const opts = (ml, a, b) => PH.filter(p => p.loai === ml && p.tt !== S.BaoTri && !DP.some(d => d.phong === p.ma && d.tt === 'Chờ nhận phòng' && d.nhan < b && a < d.tra) && !LT.some(l => l.phong === p.ma && l.tt === 'Đang ở' && new Date(l.nhan).setHours(0,0,0,0) < b && a < new Date(l.tra).setHours(0,0,0,0)));
+    const m = dialog('Tiếp nhận đặt phòng', `<div class="field"><label>Khách hàng</label>${sel(KH.map(k => k.ma + ' - ' + k.ten + ' - ' + k.sdt), '', 'k', 300)}</div>
+      <div class="field"><label>Loại phòng</label>${sel(LP.map(l => `${l.ten} (${l.sc} người)`), '', 'l', 300)}</div>
+      <div class="field"><label>Ngày nhận</label><input type="date" id="a" value="${today.toISOString().slice(0, 10)}"></div><div class="field"><label>Ngày trả</label><input type="date" id="b" value="${addD(today, 1).toISOString().slice(0, 10)}"></div>
+      <div class="field"><label>Phòng trống</label><select id="p" style="width:300px"></select></div><div class="field"><label>Ghi chú</label><input type="text" id="n"></div><div class="note" id="est"></div>`, m => {
+      const a = new Date(m.querySelector('#a').value + 'T00:00'), b = new Date(m.querySelector('#b').value + 'T00:00');
+      if (a < today) return 'Ngày nhận không được ở quá khứ.'; if (b <= a) return 'Ngày trả phải sau ngày nhận ít nhất 1 đêm.';
+      const so = m.querySelector('#p').value; if (!so) return 'Không còn phòng trống phù hợp. Hãy đổi loại phòng hoặc ngày.';
+      const p = PH.find(x => x.so === so); const d = { ma: pad('DP', DP.length + 1, 3), ngayDat: new Date(), nhan: a, tra: b, tt: 'Chờ nhận phòng', kh: m.querySelector('#k').value.split(' - ')[0], phong: p.ma, note: m.querySelector('#n').value };
+      DP.push(d); if (+a === +today && p.tt === S.Trong) p.tt = S.DaDat; state.stt = 'Chờ nhận phòng'; render(); toast(`Đã lưu đặt phòng ${d.ma}: phòng ${p.so}, ${fd(a)} → ${fd(b)}.`);
+    });
+    const refresh = () => { const l = LP[m.querySelector('#l').selectedIndex], a = new Date(m.querySelector('#a').value + 'T00:00'), b = new Date(m.querySelector('#b').value + 'T00:00');
+      const ps = b > a ? opts(l.ma, a, b) : []; m.querySelector('#p').innerHTML = ps.map(p => `<option>${p.so}</option>`).join('');
+      const dem = soDem(a, b), g = giaPhong(l.ma, a); m.querySelector('#est').textContent = ps.length ? `${ps.length} phòng trống • ${dem} đêm × ${N(g)} đ = ${N(dem * g)} đ` : 'Không còn phòng trống phù hợp trong khoảng ngày này.'; };
+    ['#l', '#a', '#b'].forEach(s => m.querySelector(s).onchange = refresh); refresh();
+  };
+};
+
+VIEWS.nhan_phong = () => {
+  const rows = DP.filter(d => d.tt === 'Chờ nhận phòng').sort((a, b) => a.nhan - b.nhan); state.rows = rows;
+  if (state.pre) { state.sel = rows.findIndex(d => d.ma === state.pre); state.pre = null; }
+  const d = rows[state.sel ?? 0]; if (state.sel == null) state.sel = 0;
+  let info = 'Chọn một đặt phòng ở danh sách bên trái.';
+  if (d) { const k = kh(d.kh), p = phong(d.phong), l = loai(p.loai);
+    info = `<div class="kv"><span>Mã đặt phòng</span><b>${d.ma}</b><span>Khách chính</span><b>${k.ten}</b><span>CCCD/Hộ chiếu</span><span>${k.cccd}</span><span>Số điện thoại</span><span>${k.sdt}</span>
+      <span>Phòng</span><span>${p.so} - ${l.ten} (tối đa ${l.sc} người)</span><span>Hiện trạng</span>${st(p.tt)}<span>Lưu trú</span><span>${fdm(d.nhan)} → ${fd(d.tra)} (${soDem(d.nhan, d.tra)} đêm)</span><span>Giá áp dụng</span><span>${N(giaPhong(l.ma, today))} đ / đêm</span></div>`; }
+  const guests = state.guests || [];
+  return head('Nhận phòng', 'Chọn đặt phòng của khách đến, kiểm tra giấy tờ, bổ sung khách đi cùng và xác nhận nhận phòng.') +
+  `<div class="toolbar"><input class="search" type="text" placeholder="🔍  Mã đặt, tên khách, số phòng..."><label><input type="checkbox"> Chỉ khách đến hôm nay</label><button class="btn sec d">+ Khách vãng lai (không đặt trước)</button></div>
+  <div class="body"><div class="row" style="flex:1">${card('Đặt phòng chờ nhận  (nền vàng: đến hạn hôm nay)', grid([{ h: 'Mã đặt', w: 75, f: d => d.ma }, { h: 'Khách hàng', f: d => kh(d.kh).ten }, { h: 'Phòng', w: 65, f: d => phong(d.phong).so },
+    { h: 'Loại', w: 85, f: d => loai(phong(d.phong).loai).ten }, { h: 'Ngày nhận', w: 100, f: d => fd(d.nhan) }, { h: 'Ngày trả', w: 100, f: d => fd(d.tra) }, { h: 'Ghi chú', w: 140, f: d => d.note }], rows,
+    { sel: state.sel, rowClass: d => d.nhan <= today ? 'hl' : '' }), 'flex:1')}
+  ${card('Thông tin nhận phòng', `<div class="pad">${info}<div class="sec-t">Khách đi cùng</div><div style="display:flex;gap:8px">${sel(KH.map(k => k.ma + ' - ' + k.ten), '', 'g', 236)}<button class="btn sec" id="addg">Thêm</button></div>
+    <div style="border:1px solid #a3b1c2;height:96px;margin:8px 0;overflow:auto;padding:4px 8px">${guests.map(g => `<div>${g}</div>`).join('') || '<span style="color:var(--muted)">Chưa có khách đi cùng</span>'}</div>
+    <button class="btn success block" id="ok" ${d ? '' : 'disabled'}>✔  Xác nhận nhận phòng</button></div>`, 'width:370px')}</div></div>`;
+};
+BIND.nhan_phong = c => {
+  rowSelect(c.querySelector('.card'), state.rows, () => { state.guests = []; render(); }); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  c.querySelector('#addg').onclick = () => { const v = c.querySelector('#g').value; state.guests = [...new Set([...(state.guests || []), v])]; render(); };
+  c.querySelector('#ok').onclick = () => {
+    const d = state.rows[state.sel]; if (!d) return; const p = phong(d.phong), l = loai(p.loai);
+    if (p.tt === S.DangO || p.tt === S.BaoTri) return toast(`Phòng ${p.so} đang "${p.tt}", không thể nhận phòng.`);
+    if ((state.guests || []).length + 1 > l.sc) return toast(`Phòng ${l.ten} chỉ tối đa ${l.sc} người.`);
+    const lt = { ma: pad('LT', LT.length + 1, 4), nhan: new Date(), tra: new Date(+d.tra + 12 * 36e5), gia: giaPhong(l.ma, today), tt: 'Đang ở', phong: p.ma, dat: d.ma }; LT.push(lt);
+    CT.push({ lt: lt.ma, kh: d.kh, vt: 'Khách chính' }); (state.guests || []).forEach(g => CT.push({ lt: lt.ma, kh: g.split(' - ')[0], vt: 'Khách đi cùng' }));
+    d.tt = 'Đã nhận phòng'; p.tt = S.DangO; state.guests = []; state.sel = 0;
+    dialog('Thông báo', `<p style="margin:0">Nhận phòng thành công!<br><br>Phòng ${p.so} - ${kh(d.kh).ten}<br>Mã lưu trú: ${lt.ma}<br>Trả phòng dự kiến: ${fdt(lt.tra)}</p>`, null, 'OK'); render();
+  };
+};
+
+VIEWS.luu_tru = () => {
+  const f = state.f || 'Đang ở';
+  const rows = LT.filter(l => f === 'Tất cả' || l.tt === f).sort((a, b) => (b.tt === 'Đang ở') - (a.tt === 'Đang ở') || (a.tt === 'Đang ở' ? phong(a.phong).so.localeCompare(phong(b.phong).so) : b.nhan - a.nhan));
+  state.rows = rows; const l = rows[state.sel ?? 0]; if (state.sel == null) state.sel = 0;
+  const dangO = LT.filter(x => x.tt === 'Đang ở');
+  return head('Khách đang lưu trú', 'Theo dõi các phòng đang có khách, danh sách khách và chi phí dịch vụ phát sinh.') +
+  `<div class="toolbar"><input class="search" style="width:200px" type="text" placeholder="🔍  Số phòng, tên khách...">${sel(['Đang ở', 'Đã trả phòng', 'Tất cả'], f, 'f', 130)}<span class="sp"></span>
+  <button class="btn sec d">Thêm khách</button><button class="btn sec d">Gia hạn</button><button class="btn sec d">Đổi phòng</button>${PQ[role].has('su_dung_dv') ? '<button class="btn" id="sv">Ghi nhận dịch vụ →</button>' : ''}${PQ[role].has('tra_phong') ? '<button class="btn success" id="co">Trả phòng →</button>' : ''}</div>
+  <div style="color:var(--primary);font-weight:700;margin-bottom:6px">Đang lưu trú: ${dangO.length} phòng  •  ${dangO.reduce((a, x) => a + CT.filter(c => c.lt === x.ma).length, 0)} khách  •  Trả phòng hôm nay: ${dangO.filter(x => +new Date(x.tra).setHours(0,0,0,0) === +today).length}   (nền đỏ: đến hạn trả)</div>
+  <div class="body">${card('', grid([{ h: 'Mã LT', w: 75, f: x => x.ma }, { h: 'Phòng', w: 60, f: x => phong(x.phong).so }, { h: 'Loại', w: 80, f: x => loai(phong(x.phong).loai).ten }, { h: 'Khách chính', f: x => khChinh(x).ten },
+    { h: 'Số khách', w: 70, r: 1, f: x => CT.filter(c => c.lt === x.ma).length }, { h: 'Nhận phòng', w: 125, f: x => fdt(x.nhan) }, { h: 'Trả (dự kiến)', w: 125, f: x => fdt(x.tra) }, { h: 'Đêm', w: 50, r: 1, f: x => soDem(x.nhan, x.tra) },
+    { h: 'Giá / đêm', w: 100, r: 1, f: x => N(x.gia) }, { h: 'Tiền DV', w: 95, r: 1, f: x => N(tienDV(x)) }, { h: 'Trạng thái', w: 105, s: 1, f: x => x.tt }], rows,
+    { sel: state.sel, rowClass: x => x.tt === 'Đang ở' && x.tra < addD(today, 1) ? 'late' : '' }), 'flex:1')}
+  <div class="row" style="height:220px">${card('Khách trong phòng', grid([{ h: 'Mã KH', w: 70, f: c => c.kh }, { h: 'Họ tên', f: c => kh(c.kh).ten }, { h: 'CCCD/HC', w: 120, f: c => kh(c.kh).cccd }, { h: 'Vai trò', w: 110, f: c => c.vt }], l ? CT.filter(c => c.lt === l.ma) : []), 'flex:1')}
+  ${card('Dịch vụ đã sử dụng', grid([{ h: 'Thời gian', w: 110, f: s => fdm(s.tg) + ' ' + s.tg.toTimeString().slice(0, 5) }, { h: 'Dịch vụ', f: s => dv(s.dv).ten }, { h: 'SL', w: 40, r: 1, f: s => s.sl }, { h: 'Đơn giá', w: 85, r: 1, f: s => N(s.gia) }, { h: 'Thành tiền', w: 95, r: 1, f: s => N(s.sl * s.gia) }], l ? SD.filter(s => s.lt === l.ma) : []), 'flex:1')}</div></div>`;
+};
+BIND.luu_tru = c => {
+  rowSelect(c.querySelector('.card'), state.rows); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  c.querySelector('#f').onchange = e => { state.f = e.target.value; state.sel = 0; render(); };
+  const sv = c.querySelector('#sv'); if (sv) sv.onclick = () => { const l = state.rows[state.sel]; go('su_dung_dv'); if (l && l.tt === 'Đang ở') { state.lt = l.ma; render(); } };
+  const co = c.querySelector('#co'); if (co) co.onclick = () => { const l = state.rows[state.sel]; go('tra_phong'); if (l && l.tt === 'Đang ở') { state.pre = l.ma; render(); } };
+};
+
+VIEWS.dich_vu = () => head('Danh mục dịch vụ', 'Các dịch vụ khách sạn cung cấp và đơn giá hiện hành.') +
+  `<div class="toolbar"><input class="search" type="text" placeholder="🔍  Tìm dịch vụ..."><span class="sp"></span><button class="btn d">+ Thêm dịch vụ</button><button class="btn sec d">Sửa</button><button class="btn sec" id="tg">Ngừng / Mở kinh doanh</button><button class="btn danger d">Xóa</button></div>
+  <div class="body">${card('', grid([{ h: 'Mã DV', w: 80, f: d => d.ma }, { h: 'Tên dịch vụ', f: d => d.ten }, { h: 'Đơn giá', w: 140, r: 1, f: d => N(d.gia) }, { h: 'Đơn vị tính', w: 120, f: d => d.dvt }, { h: 'Trạng thái', w: 160, s: 1, f: d => d.tt }], DV, { sel: state.sel }), 'flex:1')}</div>`;
+BIND.dich_vu = c => { rowSelect(c, DV); c.querySelectorAll('.d').forEach(b => b.onclick = () => demo());
+  c.querySelector('#tg').onclick = () => { const d = DV[state.sel]; if (!d) return toast('Hãy chọn một dịch vụ.'); d.tt = d.tt === 'Đang kinh doanh' ? 'Ngừng kinh doanh' : 'Đang kinh doanh'; render(); }; };
+
+VIEWS.su_dung_dv = () => {
+  const stays = LT.filter(l => l.tt === 'Đang ở').sort((a, b) => phong(a.phong).so.localeCompare(phong(b.phong).so)); state.stays = stays;
+  const cur = stays.find(l => l.ma === state.lt) || stays[0]; state.lt = cur && cur.ma;
+  const rows = cur ? SD.filter(s => s.lt === cur.ma).sort((a, b) => a.tg - b.tg) : []; state.rows = rows;
+  const ban = DV.filter(d => d.tt === 'Đang kinh doanh'), d0 = ban[state.dv || 0], sl = state.sl || 1;
+  return head('Ghi nhận sử dụng dịch vụ', 'Chọn phòng đang ở và ghi nhận dịch vụ khách sử dụng; chi phí sẽ cộng vào hóa đơn khi trả phòng.') +
+  `<div class="toolbar"><b>Phòng đang ở:</b>${sel(stays.map(l => `Phòng ${phong(l.phong).so} - ${khChinh(l).ten}  (${l.ma})`), cur ? `Phòng ${phong(cur.phong).so} - ${khChinh(cur).ten}  (${cur.ma})` : '', 'st', 340)}<span class="sp"></span><button class="btn danger" id="del">Xóa dòng đã chọn</button></div>
+  <div class="body"><div class="row" style="flex:1">${card('', grid([{ h: 'Mã', w: 70, f: s => s.ma }, { h: 'Thời gian', w: 130, f: s => fdt(s.tg) }, { h: 'Dịch vụ', f: s => dv(s.dv).ten }, { h: 'ĐVT', w: 60, f: s => dv(s.dv).dvt },
+    { h: 'Số lượng', w: 80, r: 1, f: s => s.sl }, { h: 'Đơn giá', w: 100, r: 1, f: s => N(s.gia) }, { h: 'Thành tiền', w: 110, r: 1, f: s => N(s.sl * s.gia) }], rows, { sel: state.sel }) +
+    `<div style="text-align:right;padding:12px 18px;font-size:16px;font-weight:700;color:var(--primary)">Tổng tiền dịch vụ: ${N(rows.reduce((a, s) => a + s.sl * s.gia, 0))} đ</div>`, 'flex:1')}
+  ${card('Thêm dịch vụ', `<div class="pad"><div style="color:var(--muted);margin-bottom:4px">Dịch vụ</div>${sel(ban.map(d => `${d.ten}  (${N(d.gia)} đ/${d.dvt})`), `${d0.ten}  (${N(d0.gia)} đ/${d0.dvt})`, 'dv', 300)}
+    <div style="color:var(--muted);margin:14px 0 4px">Số lượng</div><input type="number" id="sl" min="1" max="100" value="${sl}" style="width:100px">
+    <p style="font-weight:700;margin:18px 0">Thành tiền: ${sl} × ${N(d0.gia)} = ${N(sl * d0.gia)} đ</p><button class="btn block" id="add">+ Ghi nhận</button></div>`, 'width:340px')}</div></div>`;
+};
+BIND.su_dung_dv = c => {
+  rowSelect(c.querySelector('.card'), state.rows);
+  c.querySelector('#st').onchange = e => { state.lt = state.stays[e.target.selectedIndex].ma; state.sel = null; render(); };
+  c.querySelector('#dv').onchange = e => { state.dv = e.target.selectedIndex; render(); };
+  c.querySelector('#sl').onchange = e => { state.sl = Math.max(1, +e.target.value || 1); render(); };
+  c.querySelector('#add').onclick = () => { if (!state.lt) return; const d = DV.filter(x => x.tt === 'Đang kinh doanh')[state.dv || 0];
+    SD.push({ ma: pad('SD', SD.length + 1, 4), lt: state.lt, dv: d.ma, sl: state.sl || 1, gia: d.gia, tg: new Date() }); state.sl = 1; render(); };
+  c.querySelector('#del').onclick = () => { const s = state.rows[state.sel]; if (!s) return toast('Hãy chọn một dòng.'); confirmBox(`Xóa "${dv(s.dv).ten}" x${s.sl}?`, () => { SD.splice(SD.indexOf(s), 1); state.sel = null; render(); }); };
+};
+
+VIEWS.tra_phong = () => {
+  const rows = LT.filter(l => l.tt === 'Đang ở').sort((a, b) => a.tra - b.tra || phong(a.phong).so.localeCompare(phong(b.phong).so)); state.rows = rows;
+  if (state.pre) { state.sel = rows.findIndex(l => l.ma === state.pre); state.pre = null; }
+  if (state.sel == null) state.sel = 0; const l = rows[state.sel];
+  let detail = '<div class="pad" style="color:var(--muted)">Chọn phòng cần trả ở danh sách bên trái.</div>';
+  if (l) {
+    const now = new Date(), p = phong(l.phong), dem = soDem(l.nhan, now), tp = dem * l.gia, td = tienDV(l), gg = state.gg || 0, tong = Math.max(0, tp + td - gg), hd = hdOf(l);
+    const paid = hd ? TT.filter(t => t.hd === hd.ma).reduce((a, t) => a + t.tien, 0) : 0;
+    const grouped = {}; SD.filter(s => s.lt === l.ma).forEach(s => { const k = s.dv + '|' + s.gia; grouped[k] = grouped[k] || { dv: s.dv, gia: s.gia, sl: 0 }; grouped[k].sl += s.sl; });
+    const late = today < new Date(l.tra).setHours(0,0,0,0) ? `⚠ Trả sớm so với dự kiến (${fd(l.tra)})` : today > new Date(l.tra).setHours(0,0,0,0) ? `⚠ Trả trễ so với dự kiến (${fd(l.tra)})` : '';
+    detail = `<div class="pad"><div style="line-height:1.6">Phòng ${p.so} (${loai(p.loai).ten})  •  <b>${khChinh(l).ten}</b><br>Nhận: ${fdt(l.nhan)}    Trả: ${fdt(now)}<br><span style="color:var(--warning)">${late}</span></div>
+      <div class="sec-t">Tiền phòng</div><div class="money"><span style="color:var(--muted)">${dem} đêm × ${N(l.gia)} đ</span><b>${N(tp)} đ</b></div>
+      <div class="sec-t">Tiền dịch vụ</div><div style="height:128px;border:1px solid var(--border)">${grid([{ h: 'Dịch vụ', f: x => dv(x.dv).ten }, { h: 'SL', w: 40, r: 1, f: x => x.sl }, { h: 'Đơn giá', w: 85, r: 1, f: x => N(x.gia) }, { h: 'Thành tiền', w: 100, r: 1, f: x => N(x.sl * x.gia) }], Object.values(grouped))}</div>
+      <div class="money" style="justify-content:flex-end"><b>Cộng dịch vụ: ${N(td)} đ</b></div>
+      <div class="money" style="align-items:center"><span style="color:var(--muted)">Giảm giá (đ)</span><input type="number" id="gg" step="50000" min="0" value="${gg}" style="width:150px;text-align:right"></div>
+      <div style="border-top:1px solid var(--border);margin:10px 0 0;padding-top:10px" class="money"><b style="color:var(--muted);align-self:center">TỔNG CỘNG</b><span class="total">${N(tong)} đ</span></div>
+      <div style="color:var(--muted);margin:2px 0 14px">${hd ? `Hóa đơn ${hd.ma} • Đã thanh toán ${N(paid)} đ • Còn lại ${N(Math.max(0, tong - paid))} đ` : 'Chưa lập hóa đơn'}</div>
+      <div style="display:flex;gap:8px"><button class="btn sec" style="height:42px;width:160px" id="lap">Lập hóa đơn</button><button class="btn success" style="height:42px;flex:1" id="pay">Thanh toán & trả phòng</button></div></div>`;
+  }
+  return head('Trả phòng & thanh toán', 'Tính tiền phòng, tiền dịch vụ, lập hóa đơn và ghi nhận thanh toán khi khách trả phòng.') +
+  `<div class="toolbar"><input class="search" style="width:220px" type="text" placeholder="🔍  Số phòng, tên khách..."></div>
+  <div class="body"><div class="row" style="flex:1">${card('Phòng đang ở', grid([{ h: 'Phòng', w: 65, f: x => phong(x.phong).so }, { h: 'Khách chính', f: x => khChinh(x).ten }, { h: 'Nhận phòng', w: 105, f: x => fdm(x.nhan) + ' ' + x.nhan.toTimeString().slice(0, 5) },
+    { h: 'Trả dự kiến', w: 100, f: x => fd(x.tra) }, { h: 'Hóa đơn', w: 130, s: 1, f: x => (hdOf(x) || {}).tt || 'Chưa lập' }], rows, { sel: state.sel }), 'flex:1')}
+  ${card('Chi tiết thanh toán', detail, 'width:470px;flex-shrink:0;overflow:auto')}</div></div>`;
+};
+function lapHD(l) {
+  const now = new Date(), dem = soDem(l.nhan, now), tp = dem * l.gia, td = tienDV(l), gg = Math.min(state.gg || 0, tp + td);
+  let hd = hdOf(l); if (!hd) { hd = { ma: pad('HD', HD.length + 1, 4), lt: l.ma }; HD.push(hd); }
+  Object.assign(hd, { ngay: now, tp, td, gg, tong: tp + td - gg, tt: hd.tt || 'Chưa thanh toán' }); return hd;
+}
+function invoice(hd) {
+  const l = LT.find(x => x.ma === hd.lt), p = phong(l.phong), k = khChinh(l), dem = soDem(l.nhan, hd.ngay);
+  const grouped = {}; SD.filter(s => s.lt === l.ma).forEach(s => { const key = s.dv + '|' + s.gia; grouped[key] = grouped[key] || { dv: s.dv, gia: s.gia, sl: 0 }; grouped[key].sl += s.sl; });
+  const line = (a, b, c, d) => `<tr><td>${a}</td><td class="r">${b}</td><td class="r">${c}</td><td class="r">${d}</td></tr>`;
+  const paid = TT.filter(t => t.hd === hd.ma).reduce((a, t) => a + t.tien, 0);
+  dialog('Hóa đơn ' + hd.ma, `<div style="font-variant-numeric:tabular-nums"><div style="text-align:center"><b>SÀI GÒN HOTEL</b><br><small style="color:var(--muted)">TP. Hồ Chí Minh • Hotline 1900 1234</small>
+    <div style="font-size:20px;font-weight:700;margin:14px 0 4px">HÓA ĐƠN THANH TOÁN</div><div style="color:var(--muted)">Số: ${hd.ma}   •   Ngày lập: ${fdt(hd.ngay)}</div></div>
+    <div class="kv" style="margin:14px 0"><span>Khách hàng:</span><span>${k.ten}</span><span>CCCD/Hộ chiếu:</span><span>${k.cccd || ''}</span><span>Phòng:</span><span>${p.so} - ${loai(p.loai).ten}</span><span>Thời gian ở:</span><span>${fdt(l.nhan)} → ${fdt(hd.ngay)}</span></div>
+    <table class="grid"><thead><tr><th>Nội dung</th><th class="r">SL</th><th class="r">Đơn giá</th><th class="r">Thành tiền</th></tr></thead><tbody>${line(`Tiền phòng (${dem} đêm)`, dem, N(l.gia), N(hd.tp))}
+    ${Object.values(grouped).map(x => line(dv(x.dv).ten, x.sl, N(x.gia), N(x.sl * x.gia))).join('')}</tbody></table>
+    <div style="margin:10px 0 0 200px">${[['Tiền phòng', hd.tp], ['Tiền dịch vụ', hd.td], ['Giảm giá', hd.gg ? -hd.gg : 0], ['TỔNG CỘNG', hd.tong], ['Đã thanh toán', paid]].map(([a, b]) => `<div class="money" ${a === 'TỔNG CỘNG' ? 'style="font-weight:700"' : ''}><span>${a}</span><span>${N(b)} đ</span></div>`).join('')}</div>
+    <div style="text-align:right;margin-top:6px">${st(hd.tt)}</div><p style="text-align:center;color:var(--muted)">Cảm ơn quý khách và hẹn gặp lại!</p></div>`, () => toast('Trong ứng dụng C#: nút "In hóa đơn" mở hộp thoại xem trước khi in.'), '🖨  In hóa đơn');
+}
+BIND.tra_phong = c => {
+  rowSelect(c.querySelector('.card'), state.rows, () => { state.gg = 0; render(); });
+  const gg = c.querySelector('#gg'); if (!gg) return;
+  gg.onchange = e => { state.gg = Math.max(0, +e.target.value || 0); render(); };
+  const l = state.rows[state.sel];
+  c.querySelector('#lap').onclick = () => { invoice(lapHD(l)); render(); };
+  c.querySelector('#pay').onclick = () => {
+    const hd = lapHD(l), con = hd.tong - TT.filter(t => t.hd === hd.ma).reduce((a, t) => a + t.tien, 0);
+    dialog('Thanh toán hóa đơn ' + hd.ma, `<p style="color:var(--primary);font-weight:600;margin:0 0 12px">Tổng hóa đơn: ${N(hd.tong)} đ  •  Còn phải thu: ${N(con)} đ</p>
+      <div class="field"><label>Phương thức</label>${sel(PT, PT[0], 'pt', 300)}</div><div class="field"><label>Số tiền khách trả</label><input type="number" id="tien" value="${con}" step="10000"></div>`, m => {
+      const v = +m.querySelector('#tien').value; if (!(v > 0)) return 'Số tiền phải lớn hơn 0.';
+      TT.push({ ma: pad('TT', TT.length + 1, 4), hd: hd.ma, pt: m.querySelector('#pt').value, tien: Math.min(v, con), tg: new Date(), tt: 'Thành công' });
+      const paid = TT.filter(t => t.hd === hd.ma).reduce((a, t) => a + t.tien, 0);
+      hd.tt = paid >= hd.tong ? 'Đã thanh toán' : 'Thanh toán một phần';
+      if (hd.tt === 'Đã thanh toán') { l.tt = 'Đã trả phòng'; l.tra = hd.ngay; phong(l.phong).tt = S.DangDon; const d = DP.find(x => x.ma === l.dat); if (d) d.tt = 'Hoàn tất';
+        state.sel = 0; render(); setTimeout(() => invoice(hd)); toast(`Khách đã trả phòng ${phong(l.phong).so}. Phòng chuyển sang "Đang dọn".`); }
+      else { render(); toast(`Đã ghi nhận thanh toán một phần. Còn nợ ${N(hd.tong - paid)} đ.`); }
+    }, 'Lưu');
+  };
+};
+
+VIEWS.hoa_don = () => {
+  const stt = state.stt || 'Tất cả trạng thái';
+  const rows = HD.filter(h => h.ngay >= addD(today, -30) && (stt === 'Tất cả trạng thái' || h.tt === stt)).sort((a, b) => b.ngay - a.ngay); state.rows = rows;
+  const h = rows[state.sel ?? 0];
+  const paid = x => TT.filter(t => t.hd === x.ma).reduce((a, t) => a + t.tien, 0);
+  return head('Tra cứu hóa đơn', 'Tìm hóa đơn theo mã, khách hàng, phòng, khoảng ngày lập và trạng thái thanh toán.') +
+  `<div class="toolbar"><input class="search" style="width:220px" type="text" placeholder="🔍  Mã HĐ, tên khách, số phòng..."><label>Từ</label><input type="date" value="${addD(today, -30).toISOString().slice(0, 10)}"><label>đến</label><input type="date" value="${today.toISOString().slice(0, 10)}">
+  ${sel(['Tất cả trạng thái', 'Chưa thanh toán', 'Thanh toán một phần', 'Đã thanh toán'], stt, 'stt', 160)}<span class="sp"></span><button class="btn" id="view">Xem / In hóa đơn</button></div>
+  <div style="color:var(--primary);font-weight:700;margin-bottom:6px">${rows.length} hóa đơn  •  Tổng giá trị ${N(rows.reduce((a, x) => a + x.tong, 0))} đ  •  Đã thu ${N(rows.reduce((a, x) => a + paid(x), 0))} đ</div>
+  <div class="body">${card('', grid([{ h: 'Mã HĐ', w: 80, f: x => x.ma }, { h: 'Ngày lập', w: 125, f: x => fdt(x.ngay) }, { h: 'Phòng', w: 60, f: x => phong(LT.find(l => l.ma === x.lt).phong).so },
+    { h: 'Khách hàng', f: x => khChinh(LT.find(l => l.ma === x.lt)).ten }, { h: 'Tiền phòng', w: 105, r: 1, f: x => N(x.tp) }, { h: 'Tiền DV', w: 95, r: 1, f: x => N(x.td) }, { h: 'Giảm giá', w: 85, r: 1, f: x => N(x.gg) },
+    { h: 'Tổng tiền', w: 110, r: 1, f: x => N(x.tong) }, { h: 'Đã trả', w: 105, r: 1, f: x => N(paid(x)) }, { h: 'Trạng thái', w: 140, s: 1, f: x => x.tt }], rows, { sel: state.sel ?? 0 }), 'flex:1')}
+  ${card('Lịch sử thanh toán của hóa đơn', grid([{ h: 'Mã TT', w: 80, f: t => t.ma }, { h: 'Thời gian', w: 140, f: t => fdt(t.tg) }, { h: 'Phương thức', w: 140, f: t => t.pt }, { h: 'Số tiền', w: 130, r: 1, f: t => N(t.tien) }, { h: 'Trạng thái', f: t => t.tt }], h ? TT.filter(t => t.hd === h.ma) : []), 'height:180px')}</div>`;
+};
+BIND.hoa_don = c => {
+  rowSelect(c.querySelector('.card'), state.rows);
+  c.querySelector('#stt').onchange = e => { state.stt = e.target.value; state.sel = 0; render(); };
+  c.querySelector('#view').onclick = () => { const h = state.rows[state.sel ?? 0]; if (h) invoice(h); };
+};
+
+VIEWS.thong_ke = () => {
+  const tab = state.tab || 0, preset = state.preset || '30 ngày qua';
+  const first = new Date(today.getFullYear(), today.getMonth(), 1);
+  const [tu, den] = { '7 ngày qua': [addD(today, -6), today], '30 ngày qua': [addD(today, -29), today], 'Tháng này': [first, today], 'Tháng trước': [new Date(first.getFullYear(), first.getMonth() - 1, 1), addD(first, -1)], '6 tháng qua': [new Date(first.getFullYear(), first.getMonth() - 5, 1), today] }[preset];
+  const soNgay = Math.round((den - tu) / 864e5) + 1, hds = daThu(tu, den), lts = hds.map(h => LT.find(l => l.ma === h.lt));
+  let top = '', body = '';
+  if (tab === 0) {
+    const nights = l => Math.max(0, Math.round((Math.min(+new Date(l.tra).setHours(0,0,0,0), +addD(den, 1)) - Math.max(+new Date(l.nhan).setHours(0,0,0,0), +tu)) / 864e5));
+    const rows = LP.map(lp => { const ps = PH.filter(p => p.loai === lp.ma), c = s => ps.filter(p => p.tt === s).length, dem = LT.filter(l => ps.some(p => p.ma === l.phong)).reduce((a, l) => a + nights(l), 0);
+      return [lp.ten, ps.length, c(S.Trong), c(S.DaDat), c(S.DangO), c(S.DangDon), c(S.BaoTri), dem, (Math.min(1, dem / (ps.length * soNgay)) * 100).toFixed(1).replace('.', ',') + '%']; });
+    const tong = rows.reduce((a, r) => a + r[7], 0);
+    top = statCard('Tổng số phòng', PH.length, 'gray', '5 tầng') + statCard('Đang có khách', PH.filter(p => p.tt === S.DangO).length, 'primary', 'hiện tại') + statCard('Phòng trống', PH.filter(p => p.tt === S.Trong).length, 'success', 'hiện tại') +
+      statCard('Đêm phòng đã bán', N(tong), 'warning', `trong ${soNgay} ngày`) + statCard('Công suất trung bình', (Math.min(1, tong / (PH.length * soNgay)) * 100).toFixed(1).replace('.', ',') + '%', 'violet', 'trong kỳ');
+    body = card('Theo loại phòng', grid(['Loại phòng', 'Tổng', 'Trống', 'Đã đặt', 'Đang ở', 'Đang dọn', 'Bảo trì', 'Đêm phòng đã bán (kỳ)', 'Công suất (kỳ)'].map((h, i) => ({ h, r: i > 0, w: i ? (i > 6 ? 160 : 75) : 0, f: r => r[i] })), rows), 'flex:1') +
+      card('Số phòng theo trạng thái hiện tại', `<div class="pad">${chart(Object.values(S).map(s => [s, [PH.filter(p => p.tt === s).length]]), ['Phòng'], Object.values(S).map(s => HEX[COLOR[s]]), 170, true)}</div>`, 'flex-shrink:0');
+  } else if (tab === 1) {
+    const m = {}; lts.forEach((l, i) => { const k = khChinh(l); if (!k.ma) return; m[k.ma] = m[k.ma] || { k, luot: 0, dem: 0, chi: 0 }; m[k.ma].luot++; m[k.ma].dem += soDem(l.nhan, l.tra); m[k.ma].chi += hds[i].tong; });
+    const rows = Object.values(m).sort((a, b) => b.chi - a.chi), quay = rows.filter(r => LT.some(l => l.nhan < tu && khChinh(l).ma === r.k.ma)).length;
+    top = statCard('Lượt lưu trú', lts.length, 'primary', 'đã trả phòng trong kỳ') + statCard('Lượt khách', lts.reduce((a, l) => a + CT.filter(c => c.lt === l.ma).length, 0), 'info', 'gồm khách đi cùng') +
+      statCard('Khách hàng khác nhau', rows.length, 'success', 'khách chính') + statCard('Khách quay lại', quay, 'warning', rows.length ? Math.round(quay / rows.length * 100) + '% số khách' : '') +
+      statCard('Chi tiêu TB / lượt', short(lts.length ? hds.reduce((a, h) => a + h.tong, 0) / lts.length : 0), 'violet', 'đồng');
+    body = card('Khách hàng theo chi tiêu trong kỳ', grid([{ h: '#', w: 45, r: 1, f: r => rows.indexOf(r) + 1 }, { h: 'Mã KH', w: 80, f: r => r.k.ma }, { h: 'Khách hàng', f: r => r.k.ten }, { h: 'SĐT', w: 120, f: r => r.k.sdt },
+      { h: 'Số lượt ở', w: 90, r: 1, f: r => r.luot }, { h: 'Số đêm', w: 80, r: 1, f: r => r.dem }, { h: 'Tổng chi tiêu', w: 140, r: 1, f: r => N(r.chi) }], rows), 'flex:1');
+  } else if (tab === 2) {
+    const byMonth = soNgay > 62;
+    const groups = byMonth ? [...Array((den.getFullYear() - tu.getFullYear()) * 12 + den.getMonth() - tu.getMonth() + 1)].map((_, i) => { const mm = new Date(tu.getFullYear(), tu.getMonth() + i, 1);
+      return [String(mm.getMonth() + 1).padStart(2, '0') + '/' + mm.getFullYear(), hds.filter(h => h.ngay.getMonth() === mm.getMonth() && h.ngay.getFullYear() === mm.getFullYear())]; })
+      : [...Array(soNgay)].map((_, i) => { const d = addD(tu, i); return [fdm(d), hds.filter(h => h.ngay >= d && h.ngay < addD(d, 1))]; });
+    const rows = groups.map(([k, l]) => [k, l.length, l.reduce((a, h) => a + h.tp, 0), l.reduce((a, h) => a + h.td, 0), l.reduce((a, h) => a + h.gg, 0), l.reduce((a, h) => a + h.tong, 0)]);
+    const tong = hds.reduce((a, h) => a + h.tong, 0), truoc = daThu(addD(tu, -soNgay), addD(tu, -1)).reduce((a, h) => a + h.tong, 0), td = hds.reduce((a, h) => a + h.td, 0);
+    top = statCard('Tổng doanh thu', short(tong), 'primary', truoc ? ((tong - truoc) / truoc * 100 >= 0 ? '+' : '') + ((tong - truoc) / truoc * 100).toFixed(1).replace('.', ',') + '% so với kỳ trước' : '') +
+      statCard('Tiền phòng', short(hds.reduce((a, h) => a + h.tp, 0)), 'info', 'trước giảm giá') + statCard('Tiền dịch vụ', short(td), 'warning', tong ? Math.round(td / tong * 100) + '% doanh thu' : '') +
+      statCard('Số hóa đơn', hds.length, 'success', 'đã thanh toán') + statCard('Doanh thu TB / ngày', short(tong / soNgay), 'violet', byMonth ? 'biểu đồ theo tháng' : 'biểu đồ theo ngày');
+    body = card('Biểu đồ doanh thu', `<div class="pad">${chart(rows.map(r => [r[0], [r[2] - r[4], r[3]]]), ['Tiền phòng', 'Tiền dịch vụ'], ['#1d4ed8', '#0891b2'], 220)}</div>`, 'flex-shrink:0') +
+      card('Chi tiết theo kỳ', grid(['Kỳ', 'Số HĐ', 'Tiền phòng', 'Tiền dịch vụ', 'Giảm giá', 'Doanh thu'].map((h, i) => ({ h, r: i > 0, w: i ? 130 : 110, f: r => i > 1 ? N(r[i]) : r[i] })), rows), 'flex:1');
+  } else {
+    const tp = hds.reduce((a, h) => a + h.tp, 0);
+    const lr = LP.map(lp => { const x = hds.filter(h => phong(LT.find(l => l.ma === h.lt).phong).loai === lp.ma), dt = x.reduce((a, h) => a + h.tp, 0);
+      return [lp.ten, x.length, x.reduce((a, h) => { const l = LT.find(y => y.ma === h.lt); return a + soDem(l.nhan, l.tra); }, 0), N(dt), tp ? (dt / tp * 100).toFixed(1).replace('.', ',') + '%' : '-', dt]; }).sort((a, b) => b[5] - a[5]);
+    const ids = new Set(hds.map(h => h.lt)), sd = SD.filter(s => ids.has(s.lt)), tot = sd.reduce((a, s) => a + s.sl * s.gia, 0), m = {};
+    sd.forEach(s => { m[s.dv] = m[s.dv] || [dv(s.dv).ten, dv(s.dv).dvt, 0, 0]; m[s.dv][2] += s.sl; m[s.dv][3] += s.sl * s.gia; });
+    const dr = Object.values(m).sort((a, b) => b[3] - a[3]).map(r => [r[0], r[1], r[2], N(r[3]), tot ? (r[3] / tot * 100).toFixed(1).replace('.', ',') + '%' : '-']);
+    body = `<div class="row" style="flex:1">${card('Doanh thu theo loại phòng', grid(['Loại phòng', 'Lượt ở', 'Đêm', 'Doanh thu phòng', 'Tỷ trọng'].map((h, i) => ({ h, r: i > 0, w: i ? 110 : 0, f: r => r[i] })), lr), 'flex:1')}
+      ${card('Doanh thu theo dịch vụ', grid(['Dịch vụ', 'ĐVT', 'Số lượng', 'Doanh thu', 'Tỷ trọng'].map((h, i) => ({ h, r: i > 1, w: i ? 95 : 0, f: r => r[i] })), dr), 'flex:1')}</div>`;
+  }
+  return head('Thống kê & báo cáo', 'Số liệu tổng hợp theo khoảng thời gian: tình trạng phòng, khách hàng và doanh thu.') +
+  `<div class="toolbar"><label>Kỳ</label>${sel(['30 ngày qua', '7 ngày qua', 'Tháng này', 'Tháng trước', '6 tháng qua'], preset, 'pr', 130)}<label>Từ</label><input type="date" value="${tu.toISOString().slice(0, 10)}"><label>đến</label><input type="date" value="${den.toISOString().slice(0, 10)}">
+  <button class="btn">Xem thống kê</button><span class="sp"></span><button class="btn success" id="ex">⭳  Xuất báo cáo (Excel/CSV)</button></div>
+  <div class="tabs">${['6.1  Tình trạng phòng', '6.2  Khách hàng', '6.3  Doanh thu', '6.4  Báo cáo doanh thu'].map((t, i) => `<button data-t="${i}" class="${i === tab ? 'on' : ''}">${t}</button>`).join('')}</div>
+  <div class="body" style="padding-top:12px">${top ? `<div class="stats">${top}</div>` : ''}${body}</div>`;
+};
+BIND.thong_ke = c => {
+  c.querySelectorAll('.tabs button').forEach(b => b.onclick = () => { state.tab = +b.dataset.t; render(); });
+  c.querySelector('#pr').onchange = e => { state.preset = e.target.value; render(); };
+  c.querySelector('#ex').onclick = () => demo('Trong ứng dụng C#: xuất bảng của tab đang xem ra file CSV mở được bằng Excel (6.5).');
+};
+
+// ================= Đăng nhập =================
+function login() {
+  role = null; document.getElementById('wtitle').textContent = 'Đăng nhập - Hệ thống quản lý khách sạn';
+  app.innerHTML = `<div class="login"><div class="l"><div class="logo">🏨</div><h1>SÀI GÒN HOTEL</h1><p>Hệ thống quản lý tòa khách sạn</p>
+    <small>Đặt phòng • Nhận phòng • Lưu trú & dịch vụ<br>Trả phòng • Hóa đơn • Thống kê doanh thu</small><small class="foot">Đồ án kết thúc môn học - Khoa CNTT, ĐH Sài Gòn</small></div>
+    <form class="r" id="lf"><h2>Đăng nhập</h2><p style="color:var(--muted);margin:6px 0 26px">Vui lòng đăng nhập để tiếp tục</p>
+    <b>Tên đăng nhập</b><input type="text" id="lu" value="admin" autocomplete="username"><b>Mật khẩu</b><input type="password" id="lp" value="123" autocomplete="current-password">
+    <label style="color:var(--muted)"><input type="checkbox" id="show"> Hiện mật khẩu</label><div id="lerr" style="color:var(--danger);height:22px;margin-top:8px"></div>
+    <button class="btn" style="width:360px;height:42px">Đăng nhập</button>
+    <div class="hint">Tài khoản demo (mật khẩu 123):<br>admin • quanly • letan • buongphong   (letan2 đang bị khóa)</div></form></div>`;
+  app.querySelector('#show').onchange = e => app.querySelector('#lp').type = e.target.checked ? 'text' : 'password';
+  app.querySelector('#lf').onsubmit = e => {
+    e.preventDefault(); const u = app.querySelector('#lu').value.trim().toLowerCase(), p = app.querySelector('#lp').value, err = app.querySelector('#lerr');
+    if (!u || !p) return err.textContent = 'Vui lòng nhập tên đăng nhập và mật khẩu.';
+    const t = TK.find(x => x.user === u); if (!t || p !== '123') return err.textContent = 'Tên đăng nhập hoặc mật khẩu không đúng.';
+    if (t.tt === 'Đã khóa') return err.textContent = 'Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.';
+    enter(t.vt);
+  };
+}
+function enter(r) { role = r; document.getElementById('wtitle').textContent = 'Hệ thống quản lý khách sạn'; modal.innerHTML = ''; shell(); }
+document.querySelectorAll('[data-role]').forEach(b => b.onclick = () => enter(b.dataset.role));
+document.getElementById('toLogin').onclick = login;
+// Mở thẳng một màn hình qua #ma_chuc_nang (ví dụ #thong_ke), mặc định: quản trị viên ở bảng điều khiển.
+const h = location.hash.slice(1);
+if (h === 'login') login(); else { enter('Quản trị viên'); if (MENU.some(m => m.key === h)) go(h); }
+window.__go = go; window.__enter = enter; window.__login = login;
+})();
+</script>
+<!--ARTIFACT-END-->
+</body>
+</html>
