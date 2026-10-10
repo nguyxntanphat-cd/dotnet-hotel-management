@@ -89,7 +89,7 @@ public class ChiTietLuuTru
     public string MaCTLT { get; set; } = "";
     public string MaLuuTru { get; set; } = "";
     public string MaKH { get; set; } = "";
-    public string VaiTro { get; set; } = "Khách chính";
+    public string VaiTro { get; set; } = VaiTroLuuTru.KhachChinh;
     public string GhiChu { get; set; } = "";
 }
 
@@ -132,5 +132,5 @@ public class ThanhToan
     public string PhuongThuc { get; set; } = "";
     public decimal SoTien { get; set; }
     public DateTime ThoiGian { get; set; }
-    public string TrangThai { get; set; } = "Thành công";
+    public string TrangThai { get; set; } = TrangThaiThanhToan.ThanhCong;
 }

@@ -40,6 +40,44 @@ Bản demo hiện tại đọc dữ liệu từ `Data/MockDb.cs` và `Data/Hotel
 3. Chọn nguồn dữ liệu bằng biến môi trường `HOTEL_DATA=Mock|Sql` (mặc định `Mock`). Nhờ vậy app **luôn chạy được** dù các module khác chưa xong.
 4. Khi mọi module đã sang Sql, xóa `MockDb.cs` và `HotelService.cs` (issue cuối).
 
+### Mẫu repository và service
+
+Mỗi bảng có `I<Ten>Repository` (kế thừa `IRepository<T>` với 6 method chuẩn), `Mock<Ten>Repository` và một dòng trong `Data/DataSource.cs`. Bản Sql mẫu: `Data/Repositories/SqlLoaiPhongRepository.cs`.
+
+```csharp
+// Data/Repositories/SqlPhongRepository.cs – cột trùng tên thuộc tính nên Db.Query<T> tự gán
+public class SqlPhongRepository : IPhongRepository
+{
+    public Phong? LayTheoMa(string ma) =>
+        Db.Query<Phong>("SELECT MaPhong, SoPhong, Tang, TrangThai, MaLoai FROM Phong WHERE MaPhong = @MaPhong",
+            new { MaPhong = ma }).FirstOrDefault();
+    public void CapNhat(Phong p) =>
+        Db.Execute("UPDATE Phong SET SoPhong = @SoPhong, Tang = @Tang, TrangThai = @TrangThai, MaLoai = @MaLoai WHERE MaPhong = @MaPhong", p);
+    public string TaoMaMoi() => Db.TaoMa("Phong", "MaPhong", "P", 3);
+    // ... LayTatCa, Them, Xoa tương tự
+}
+
+// Data/DataSource.cs – sửa đúng dòng của module mình: thay null bằng bản Sql
+public static IPhongRepository Phong { get; } = Chon<IPhongRepository>(() => new MockPhongRepository(), () => new SqlPhongRepository());
+
+// Services/PhongService.cs – chỉ lấy repository qua DataSource
+/// <summary>2.2–2.4 Quản lý phòng.</summary>
+public static class PhongService
+{
+    public static void CapNhatTrangThai(string maPhong, string trangThai)
+    {
+        var phong = DataSource.Phong.LayTheoMa(maPhong) ?? throw new InvalidOperationException("Không tìm thấy phòng.");
+        if (phong.TrangThai == TrangThaiPhong.DangO) throw new InvalidOperationException("Phòng đang có khách.");
+        phong.TrangThai = trangThai;
+        DataSource.Phong.CapNhat(phong);   // luôn gọi CapNhat: bản Sql trả về bản sao
+    }
+}
+```
+
+- Thao tác nhiều bảng bọc trong `Db.Transaction(() => { ... })`: mọi lệnh `Db` bên trong dùng chung một transaction, lỗi thì hoàn tác hết.
+- `Db.Execute` đổi lỗi trùng khóa và lỗi khóa ngoại thành `InvalidOperationException` tiếng Việt, View chỉ cần `UiKit.Warn(ex.Message)`.
+- Chuỗi kết nối mặc định là LocalDB; máy khác đặt biến `HOTEL_DB`, ví dụ `Server=.\SQLEXPRESS;Database=HotelManagement;Integrated Security=True;TrustServerCertificate=True`.
+
 ## 3. Cấu trúc thư mục đích
 
 ```
@@ -149,7 +187,8 @@ Muốn thêm thư viện khác: mở issue hỏi trước. Không dùng Entity F
 dotnet build HotelManagement.sln -c Release      # build như CI
 dotnet run --project src/HotelManagement          # chạy app (Windows)
 set HOTEL_DATA=Sql && dotnet run --project src/HotelManagement   # chạy với SQL Server
-sqlcmd -S "(localdb)\MSSQLLocalDB" -i src/HotelManagement/Data/Sql/01_schema.sql   # tạo CSDL
+sqlcmd -S "(localdb)\MSSQLLocalDB" -f 65001 -i src/HotelManagement/Data/Sql/01_schema.sql   # tạo CSDL (xóa dữ liệu cũ)
+sqlcmd -S "(localdb)\MSSQLLocalDB" -f 65001 -i src/HotelManagement/Data/Sql/02_seed.sql     # dữ liệu mẫu
 ```
 
 Tài khoản demo: `admin`, `quanly`, `letan`, `buongphong` – mật khẩu `123`.
