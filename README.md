@@ -4,6 +4,10 @@
 
 Bản demo dùng **dữ liệu mẫu trong bộ nhớ** (30 phòng, 18 khách, khoảng 900 lượt lưu trú trong 6 tháng để thống kê có số liệu). Chưa kết nối cơ sở dữ liệu; mọi thay đổi mất khi tắt ứng dụng.
 
+## Làm việc nhóm
+
+Trước khi code, đọc [`AGENTS.md`](AGENTS.md): kiến trúc, quy ước đặt tên, thư viện được dùng và quy trình Git (mỗi task là một issue, làm trên nhánh riêng, mở PR vào `main`). File này cũng là hướng dẫn cho các công cụ AI.
+
 ## Chạy ứng dụng
 
 Yêu cầu: Windows, [.NET 8 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) (hoặc Visual Studio 2022).
@@ -69,5 +73,4 @@ Giao diện được dựng bằng code (không dùng file `.Designer.cs`) để
 
 ## Bước tiếp theo cho hệ thống chính
 
-- Thay `Data/MockDb.cs` bằng tầng truy cập SQL Server (ADO.NET hoặc Entity Framework Core); các màn hình chỉ gọi qua `HotelService` nên ít phải sửa.
-- Mã hóa mật khẩu (hiện để dạng chữ thường cho demo).
+Các phần việc còn lại được chia thành issue `[01]`–`[12]` trên GitHub. Lộ trình chuyển từ dữ liệu mẫu sang SQL Server mô tả ở mục 2 của `AGENTS.md`.
