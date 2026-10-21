@@ -1,0 +1,449 @@
+@page
+@model MyRazorApp.Pages.AccountsModel
+@{
+    ViewData["Title"] = "Quản lý Tài khoản - AHoLa Hotel";
+}
+
+<div class="accounts-container container-fluid py-4 px-4">
+
+    <!-- TIÊU ĐỀ TRANG & NÚT THAO TÁC -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-shield-lock-fill text-primary me-2"></i>Quản Lý Tài Khoản
+            </h2>
+            <p class="text-muted mb-0">Tạo tài khoản đăng nhập cho nhân viên, gán vai trò, khóa/mở khóa và đặt lại mật khẩu hệ thống.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+            </button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium" data-bs-toggle="modal" data-bs-target="#addAccountModal">
+                <i class="bi bi-plus-circle me-1"></i> Thêm Tài Khoản
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. THỐNG KÊ NHANH TÀI KHOẢN -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--primary">
+                <div class="kpi-head">
+                    <span class="kpi-label">Tổng tài khoản</span>
+                    <span class="kpi-icon"><i class="bi bi-person-badge"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.AccountsList.Count</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--success">
+                <div class="kpi-head">
+                    <span class="kpi-label">Đang hoạt động</span>
+                    <span class="kpi-icon"><i class="bi bi-person-check"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.AccountsList.Count(x => x.Status == "Hoạt động")</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--danger">
+                <div class="kpi-head">
+                    <span class="kpi-label">Đã bị khóa</span>
+                    <span class="kpi-icon"><i class="bi bi-lock"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.AccountsList.Count(x => x.Status == "Đã khóa")</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--info">
+                <div class="kpi-head">
+                    <span class="kpi-label">Quản trị viên</span>
+                    <span class="kpi-icon"><i class="bi bi-shield-check"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.AccountsList.Count(x => x.Role == "Quản trị viên")</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BỘ LỌC & TÌM KIẾM -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-3">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="SearchTerm" value="@Model.SearchTerm" class="form-field form-control border-start-0" placeholder="Tìm kiếm theo mã, username, họ tên...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="RoleFilter" class="form-field form-select">
+                        <option value="">-- Tất cả vai trò --</option>
+                        <option value="Quản trị viên">Quản trị viên</option>
+                        <option value="Quản lý">Quản lý</option>
+                        <option value="Lễ tân">Lễ tân</option>
+                        <option value="Nhân viên buồng phòng">Nhân viên buồng phòng</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="StatusFilter" class="form-field form-select">
+                        <option value="">-- Trạng thái tài khoản --</option>
+                        <option value="Hoạt động">Hoạt động</option>
+                        <option value="Đã khóa">Đã khóa</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" class="btn btn-outline-primary w-100 rounded-pill">
+                        <i class="bi bi-funnel me-1"></i> Lọc dữ liệu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. BẢNG DANH SÁCH TÀI KHOẢN -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 custom-account-table">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">Mã TK</th>
+                            <th class="py-3">Tên Đăng Nhập & Nhân Viên</th>
+                            <th class="py-3">Bộ Phận / Chức Vụ</th>
+                            <th class="py-3">Vai Trò Hệ Thống</th>
+                            <th class="py-3">Trạng Thái</th>
+                            <th class="pe-4 py-3 text-end">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var acc in Model.AccountsList)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-primary">@acc.Id</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-placeholder rounded-circle bg-primary-subtle text-primary fw-bold me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 1rem;">
+                                            @acc.FullName.Substring(0, 1)
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-dark">@acc.Username</h6>
+                                            <small class="text-muted">@acc.FullName</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (acc.Department == "Quản lý & Hành chính")
+                                    {
+                                        <span class="badge border px-2 py-1" style="background-color: #f3e8ff; color: #6b21a8; border-color: #e9d5ff !important;">@acc.Department</span>
+                                    }
+                                    else if (acc.Department == "Lễ tân")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">@acc.Department</span>
+                                    }
+                                    else if (acc.Department == "Buồng phòng")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">@acc.Department</span>
+                                    }
+                                    else if (acc.Department.Contains("F&B") || acc.Department.Contains("Ẩm thực"))
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">@acc.Department</span>
+                                    }
+                                    else if (acc.Department == "Kỹ thuật" || acc.Department.Contains("Bảo trì"))
+                                    {
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">@acc.Department</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">@acc.Department</span>
+                                    }
+                                    <div class="small text-muted mt-1">@acc.Position</div>
+                                </td>
+                                <td>
+                                    @if (acc.Role == "Quản trị viên")
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">@acc.Role</span>
+                                    }
+                                    else if (acc.Role == "Quản lý")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">@acc.Role</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">@acc.Role</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (acc.Status == "Hoạt động")
+                                    {
+                                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
+                                            <i class="bi bi-dot"></i> Hoạt động
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">
+                                            <i class="bi bi-lock-fill me-1"></i> Đã khóa
+                                        </span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <!-- 1. Nút Chỉnh Sửa -->
+                                        <button type="button" class="btn btn-sm btn-light text-primary btn-edit" title="Chỉnh sửa tài khoản"
+                                                data-id="@acc.Id"
+                                                data-username="@acc.Username"
+                                                data-fullname="@acc.FullName"
+                                                data-role="@acc.Role"
+                                                data-status="@acc.Status"
+                                                data-bs-toggle="modal" data-bs-target="#editAccountModal">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+
+                                        <!-- 2. Nút Đặt Lại Mật Khẩu -->
+                                        <button type="button" class="btn btn-sm btn-light text-warning btn-reset-pass" title="Đặt lại mật khẩu"
+                                                data-id="@acc.Id"
+                                                data-username="@acc.Username"
+                                                data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
+                                            <i class="bi bi-key"></i>
+                                        </button>
+
+                                        <!-- 3. Nút Khóa / Mở Khóa Tài Khoản -->
+                                        <form method="post" asp-page-handler="ToggleStatus" class="d-inline">
+                                            <input type="hidden" name="id" value="@acc.Id" />
+                                            @if (acc.Status == "Hoạt động")
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-light text-secondary" title="Khóa tài khoản">
+                                                    <i class="bi bi-lock"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-light text-success" title="Mở khóa tài khoản">
+                                                    <i class="bi bi-unlock"></i>
+                                                </button>
+                                            }
+                                        </form>
+
+                                        <!-- 4. Nút Xóa Tài Khoản -->
+                                        <button type="button" class="btn btn-sm btn-light text-danger btn-delete" title="Xóa tài khoản"
+                                                data-id="@acc.Id"
+                                                data-username="@acc.Username"
+                                                data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="card-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center">
+            <span class="small text-muted">Hiển thị 1 - @Model.AccountsList.Count trong tổng số @Model.AccountsList.Count tài khoản</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">Sau</a></li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<!-- ======================= MODAL SYSTEM ======================= -->
+
+<!-- 1. MODAL THÊM TÀI KHOẢN -->
+<div class="modal fade" id="addAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Create">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-person-plus text-primary me-2"></i>Thêm Tài Khoản Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Mã tài khoản</label>
+                            <input type="text" class="form-control" name="NewAccount.Id" value="TK006" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Tên đăng nhập (Username)</label>
+                            <input type="text" class="form-control" name="NewAccount.Username" placeholder="Nhập username..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Nhân viên liên kết</label>
+                            <select class="form-select" name="NewAccount.FullName" required>
+                                <option value="">-- Chọn nhân viên --</option>
+                                <option value="Phạm Thị D">Phạm Thị D (NV-1001)</option>
+                                <option value="Hoàng Văn E">Hoàng Văn E (NV-1002)</option>
+                                <option value="Vũ Minh F">Vũ Minh F (NV-1003)</option>
+                                <option value="Đỗ Văn G">Đỗ Văn G (NV-1004)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Vai trò hệ thống</label>
+                            <select class="form-select" name="NewAccount.Role" required>
+                                <option value="Quản trị viên">Quản trị viên</option>
+                                <option value="Quản lý">Quản lý</option>
+                                <option value="Lễ tân">Lễ tân</option>
+                                <option value="Nhân viên buồng phòng">Nhân viên buồng phòng</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Mật khẩu ban đầu</label>
+                            <input type="password" class="form-control" name="Password" placeholder="••••••••" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Xác nhận mật khẩu</label>
+                            <input type="password" class="form-control" name="ConfirmPassword" placeholder="••••••••" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. MODAL CHỈNH SỬA TÀI KHOẢN -->
+<div class="modal fade" id="editAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Edit">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-pencil-square text-primary me-2"></i>Chỉnh Sửa Tài Khoản</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editAccountId" name="EditAccount.Id" />
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Tên đăng nhập</label>
+                        <input type="text" id="editUsername" class="form-control bg-light" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Nhân viên sở hữu</label>
+                        <input type="text" id="editFullName" class="form-control bg-light" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Vai trò hệ thống</label>
+                        <select id="editRole" name="EditAccount.Role" class="form-select" required>
+                            <option value="Quản trị viên">Quản trị viên</option>
+                            <option value="Quản lý">Quản lý</option>
+                            <option value="Lễ tân">Lễ tân</option>
+                            <option value="Nhân viên buồng phòng">Nhân viên buồng phòng</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Trạng thái</label>
+                        <select id="editStatus" name="EditAccount.Status" class="form-select" required>
+                            <option value="Hoạt động">Hoạt động</option>
+                            <option value="Đã khóa">Đã khóa</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Cập Nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. MODAL ĐẶT LẠI MẬT KHẨU -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="ResetPassword">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-key text-warning me-2"></i>Đặt Lại Mật Khẩu</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="resetAccountId" name="id" />
+                    <p class="text-muted small">Bạn đang đặt lại mật khẩu cho tài khoản: <strong id="resetAccountUsername" class="text-dark"></strong></p>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Mật khẩu mới</label>
+                        <input type="password" name="NewPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-medium small">Xác nhận mật khẩu mới</label>
+                        <input type="password" name="ConfirmNewPassword" class="form-control" placeholder="••••••••" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 text-white">Xác Nhận Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 4. MODAL XÓA TÀI KHOẢN -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Delete">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Xác Nhận Xóa Tài Khoản</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deleteAccountId" name="id" />
+                    <p class="mb-1 text-dark">Bạn có chắc chắn muốn xóa tài khoản <strong id="deleteAccountUsername" class="text-danger"></strong> không?</p>
+                    <small class="text-muted">Thao tác này không thể hoàn tác sau khi thực hiện.</small>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Xóa Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // JS Đổ dữ liệu động vào Modal khi nhấn các nút thao tác
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            // 1. Chỉnh sửa tài khoản
+            document.querySelectorAll(".btn-edit").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("editAccountId").value = this.getAttribute("data-id");
+                    document.getElementById("editUsername").value = this.getAttribute("data-username");
+                    document.getElementById("editFullName").value = this.getAttribute("data-fullname");
+                    document.getElementById("editRole").value = this.getAttribute("data-role");
+                    document.getElementById("editStatus").value = this.getAttribute("data-status");
+                });
+            });
+
+            // 2. Đặt lại mật khẩu
+            document.querySelectorAll(".btn-reset-pass").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("resetAccountId").value = this.getAttribute("data-id");
+                    document.getElementById("resetAccountUsername").textContent = this.getAttribute("data-username");
+                });
+            });
+
+            // 3. Xóa tài khoản
+            document.querySelectorAll(".btn-delete").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("deleteAccountId").value = this.getAttribute("data-id");
+                    document.getElementById("deleteAccountUsername").textContent = this.getAttribute("data-username");
+                });
+            });
+
+        });
+    </script>
+}

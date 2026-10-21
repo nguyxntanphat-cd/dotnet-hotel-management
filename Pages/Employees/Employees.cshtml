@@ -1,0 +1,436 @@
+@page
+@model MyRazorApp.Pages.Employees.EmployeesModel
+@{
+    ViewData["Title"] = "Quản lý Nhân viên - AHoLa Hotel";
+}
+
+<div class="employees-container container-fluid py-4 px-4">
+
+    <!-- 1. TIÊU ĐỀ TRANG & NÚT THAO TÁC -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-people-fill text-info me-2"></i>Quản Lý Nhân Viên
+            </h2>
+            <p class="text-muted mb-0">Quản lý danh sách nhân sự, phân công phòng ban và thông tin liên hệ trong hệ thống AHoLa Hotel.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm">
+                <i class="bi bi-file-earmark-excel me-1"></i> Xuất Excel
+            </button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium" data-bs-toggle="modal" data-bs-target="#addEmployeeModal">
+                <i class="bi bi-plus-circle me-1"></i> Thêm Nhân Viên
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. THỐNG KÊ NHANH NHÂN SỰ -->
+    <div class="row g-3 mb-4">
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--primary">
+                <div class="kpi-head">
+                    <span class="kpi-label">Tổng nhân viên</span>
+                    <span class="kpi-icon"><i class="bi bi-people"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.EmployeesList.Count</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--success">
+                <div class="kpi-head">
+                    <span class="kpi-label">Đang làm việc</span>
+                    <span class="kpi-icon"><i class="bi bi-person-check"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.EmployeesList.Count(x => x.Status == "Đang làm việc")</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--warning">
+                <div class="kpi-head">
+                    <span class="kpi-label">Đang nghỉ phép</span>
+                    <span class="kpi-icon"><i class="bi bi-person-exclamation"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>@Model.EmployeesList.Count(x => x.Status == "Đang nghỉ phép")</span></div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-sm-6">
+            <div class="kpi kpi--info">
+                <div class="kpi-head">
+                    <span class="kpi-label">Bộ phận nhiều nhất</span>
+                    <span class="kpi-icon"><i class="bi bi-building"></i></span>
+                </div>
+                @{
+                    var topDept = Model.EmployeesList.GroupBy(x => x.Department).OrderByDescending(g => g.Count()).FirstOrDefault();
+                }
+                <div class="kpi-value"><span data-count>@(topDept?.Count() ?? 0)</span><span class="kpi-unit">người</span></div>
+                <div class="kpi-foot"><span class="kpi-dot"></span>@(topDept?.Key ?? "Chưa có dữ liệu")</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. BỘ LỌC & TÌM KIẾM -->
+    <div class="card border-0 shadow-sm rounded-3 mb-4">
+        <div class="card-body p-3">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+                        <input type="text" name="SearchTerm" value="@Model.SearchTerm" class="form-field form-control border-start-0" placeholder="Tìm kiếm theo mã, tên, email, SĐT...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="DepartmentFilter" class="form-field form-select">
+                        <option value="">-- Tất cả bộ phận --</option>
+                        <option value="Lễ tân">Lễ tân</option>
+                        <option value="Buồng phòng">Buồng phòng</option>
+                        <option value="F&B (Ẩm thực)">F&B (Ẩm thực)</option>
+                        <option value="Kỹ thuật">Kỹ thuật</option>
+                        <option value="Quản lý & Hành chính">Quản lý & Hành chính</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select name="StatusFilter" class="form-field form-select">
+                        <option value="">-- Trạng thái làm việc --</option>
+                        <option value="Đang làm việc">Đang làm việc</option>
+                        <option value="Đang nghỉ phép">Đang nghỉ phép</option>
+                    </select>
+                </div>
+                <div class="col-md-2 text-end">
+                    <button type="submit" class="btn btn-outline-primary w-100 rounded-pill">
+                        <i class="bi bi-funnel me-1"></i> Lọc dữ liệu
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. BẢNG DANH SÁCH NHÂN VIÊN -->
+    <div class="card border-0 shadow-sm rounded-3">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 custom-employee-table">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3">Mã NV</th>
+                            <th class="py-3">Họ & Tên</th>
+                            <th class="py-3">Bộ Phận / Chức Vụ</th>
+                            <th class="py-3">Liên Hệ</th>
+                            <th class="py-3">Ngày Vào Làm</th>
+                            <th class="py-3">Trạng Thái</th>
+                            <th class="pe-4 py-3 text-end">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var emp in Model.EmployeesList)
+                        {
+                            <tr>
+                                <td class="ps-4 fw-bold text-primary">@emp.Id</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="avatar-placeholder rounded-circle bg-primary-subtle text-primary fw-bold me-3 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px; font-size: 1rem;">
+                                            @emp.FullName.Substring(0, 1)
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-0 text-dark">@emp.FullName</h6>
+                                            <small class="text-muted">@emp.Email</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    @if (emp.Department == "Quản lý & Hành chính")
+                                    {
+                                        <span class="badge border px-2 py-1" style="background-color: #f3e8ff; color: #6b21a8; border-color: #e9d5ff !important;">@emp.Department</span>
+                                    }
+                                    else if (emp.Department == "Lễ tân")
+                                    {
+                                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1">@emp.Department</span>
+                                    }
+                                    else if (emp.Department == "Buồng phòng")
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning border border-warning-subtle px-2 py-1">@emp.Department</span>
+                                    }
+                                    else if (emp.Department.Contains("F&B") || emp.Department.Contains("Ẩm thực"))
+                                    {
+                                        <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">@emp.Department</span>
+                                    }
+                                    else if (emp.Department == "Kỹ thuật" || emp.Department.Contains("Bảo trì"))
+                                    {
+                                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1">@emp.Department</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1">@emp.Department</span>
+                                    }
+                                    <div class="small text-muted mt-1">@emp.Position</div>
+                                </td>
+                                <td>
+                                    <div class="small fw-medium"><i class="bi bi-telephone text-muted me-1"></i>@emp.Phone</div>
+                                    <div class="small text-muted"><i class="bi bi-telephone-inbound text-muted me-1"></i>Ext: @emp.Ext</div>
+                                </td>
+                                <td class="small text-muted">@emp.JoinDate</td>
+                                <td>
+                                    @if (emp.Status == "Đang làm việc")
+                                    {
+                                        <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill">
+                                            <i class="bi bi-dot"></i> Đang làm việc
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning-subtle text-warning px-3 py-2 rounded-pill">
+                                            <i class="bi bi-clock-history me-1"></i> Đang nghỉ phép
+                                        </span>
+                                    }
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <div class="d-inline-flex gap-1">
+                                        <!-- 1. Nút Sửa Nhấn Mở Modal -->
+                                        <button type="button" class="btn btn-sm btn-light text-primary btn-edit-emp" title="Chi tiết/Sửa"
+                                                data-id="@emp.Id"
+                                                data-fullname="@emp.FullName"
+                                                data-email="@emp.Email"
+                                                data-phone="@emp.Phone"
+                                                data-ext="@emp.Ext"
+                                                data-department="@emp.Department"
+                                                data-position="@emp.Position"
+                                                data-joindate="@emp.JoinDate"
+                                                data-status="@emp.Status"
+                                                data-bs-toggle="modal" data-bs-target="#editEmployeeModal">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </button>
+
+                                        <!-- 2. Nút Đổi Trạng Thái Nhanh -->
+                                        <form method="post" asp-page-handler="ToggleStatus" class="d-inline">
+                                            <input type="hidden" name="id" value="@emp.Id" />
+                                            @if (emp.Status == "Đang làm việc")
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-light text-warning" title="Chuyển sang Nghỉ phép">
+                                                    <i class="bi bi-person-dash"></i>
+                                                </button>
+                                            }
+                                            else
+                                            {
+                                                <button type="submit" class="btn btn-sm btn-light text-success" title="Chuyển sang Làm việc">
+                                                    <i class="bi bi-person-check"></i>
+                                                </button>
+                                            }
+                                        </form>
+
+                                        <!-- 3. Nút Xóa Nhân Viên -->
+                                        <button type="button" class="btn btn-sm btn-light text-danger btn-delete-emp" title="Xóa nhân viên"
+                                                data-id="@emp.Id"
+                                                data-fullname="@emp.FullName"
+                                                data-bs-toggle="modal" data-bs-target="#deleteEmployeeModal">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- PHÂN TRANG -->
+        <div class="card-footer bg-white border-top py-3 px-4 d-flex justify-content-between align-items-center">
+            <span class="small text-muted">Hiển thị 1 - @Model.EmployeesList.Count trong tổng số @Model.EmployeesList.Count nhân viên</span>
+            <ul class="pagination pagination-sm mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">Sau</a></li>
+            </ul>
+        </div>
+    </div>
+
+</div>
+
+<!-- ======================= MODAL SYSTEM ======================= -->
+
+<!-- 1. MODAL THÊM NHÂN VIÊN -->
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Create">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-person-plus text-primary me-2"></i>Thêm Nhân Viên Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Họ và tên</label>
+                            <input type="text" class="form-control" name="NewEmp.FullName" placeholder="Nhập họ và tên..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Mã nhân viên</label>
+                            <input type="text" class="form-control bg-light" name="NewEmp.Id" value="NV-1005" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Email</label>
+                            <input type="email" class="form-control" name="NewEmp.Email" placeholder="example@aholahotel.vn" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Số điện thoại</label>
+                            <input type="text" class="form-control" name="NewEmp.Phone" placeholder="09xx xxx xxx" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Số máy lẻ (Ext)</label>
+                            <input type="text" class="form-control" name="NewEmp.Ext" placeholder="105">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Bộ phận</label>
+                            <select class="form-select" name="NewEmp.Department" required>
+                                <option value="Lễ tân">Lễ tân</option>
+                                <option value="Buồng phòng">Buồng phòng</option>
+                                <option value="F&B (Ẩm thực)">F&B (Ẩm thực)</option>
+                                <option value="Kỹ thuật">Kỹ thuật</option>
+                                <option value="Quản lý & Hành chính">Quản lý & Hành chính</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Chức vụ</label>
+                            <input type="text" class="form-control" name="NewEmp.Position" placeholder="VD: Nhân viên lễ tân" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Ngày vào làm</label>
+                            <input type="date" class="form-control" name="NewEmp.JoinDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Trạng thái ban đầu</label>
+                            <select class="form-select" name="NewEmp.Status" required>
+                                <option value="Đang làm việc">Đang làm việc</option>
+                                <option value="Đang nghỉ phép">Đang nghỉ phép</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Nhân Viên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. MODAL CHỈNH SỬA NHÂN VIÊN -->
+<div class="modal fade" id="editEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Edit">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-pencil-square text-primary me-2"></i>Chỉnh Sửa Hồ Sơ Nhân Viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editEmpId" name="EditEmp.Id" />
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Họ và tên</label>
+                            <input type="text" id="editEmpFullName" class="form-control" name="EditEmp.FullName" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Email</label>
+                            <input type="email" id="editEmpEmail" class="form-control" name="EditEmp.Email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Số điện thoại</label>
+                            <input type="text" id="editEmpPhone" class="form-control" name="EditEmp.Phone" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Số máy lẻ (Ext)</label>
+                            <input type="text" id="editEmpExt" class="form-control" name="EditEmp.Ext">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Bộ phận</label>
+                            <select id="editEmpDepartment" class="form-select" name="EditEmp.Department" required>
+                                <option value="Lễ tân">Lễ tân</option>
+                                <option value="Buồng phòng">Buồng phòng</option>
+                                <option value="F&B (Ẩm thực)">F&B (Ẩm thực)</option>
+                                <option value="Kỹ thuật">Kỹ thuật</option>
+                                <option value="Quản lý & Hành chính">Quản lý & Hành chính</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Chức vụ</label>
+                            <input type="text" id="editEmpPosition" class="form-control" name="EditEmp.Position" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Ngày vào làm</label>
+                            <input type="text" id="editEmpJoinDate" class="form-control" name="EditEmp.JoinDate" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium small">Trạng thái làm việc</label>
+                            <select id="editEmpStatus" class="form-select" name="EditEmp.Status" required>
+                                <option value="Đang làm việc">Đang làm việc</option>
+                                <option value="Đang nghỉ phép">Đang nghỉ phép</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Cập Nhật Hồ Sơ</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. MODAL XÓA NHÂN VIÊN -->
+<div class="modal fade" id="deleteEmployeeModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Delete">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Xác Nhận Xóa Nhân Viên</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deleteEmpId" name="id" />
+                    <p class="mb-1 text-dark">Bạn có chắc chắn muốn xóa hồ sơ nhân viên <strong id="deleteEmpFullName" class="text-danger"></strong> không?</p>
+                    <small class="text-muted">Mọi thông tin liên quan đến nhân viên này sẽ bị gỡ khỏi hệ thống.</small>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Xóa Nhân Viên</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 1. Gán dữ liệu vào Modal Chỉnh sửa Nhân viên
+            document.querySelectorAll(".btn-edit-emp").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("editEmpId").value = this.getAttribute("data-id");
+                    document.getElementById("editEmpFullName").value = this.getAttribute("data-fullname");
+                    document.getElementById("editEmpEmail").value = this.getAttribute("data-email");
+                    document.getElementById("editEmpPhone").value = this.getAttribute("data-phone");
+                    document.getElementById("editEmpExt").value = this.getAttribute("data-ext");
+                    document.getElementById("editEmpDepartment").value = this.getAttribute("data-department");
+                    document.getElementById("editEmpPosition").value = this.getAttribute("data-position");
+                    document.getElementById("editEmpJoinDate").value = this.getAttribute("data-joindate");
+                    document.getElementById("editEmpStatus").value = this.getAttribute("data-status");
+                });
+            });
+
+            // 2. Gán dữ liệu vào Modal Xóa Nhân viên
+            document.querySelectorAll(".btn-delete-emp").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("deleteEmpId").value = this.getAttribute("data-id");
+                    document.getElementById("deleteEmpFullName").textContent = this.getAttribute("data-fullname");
+                });
+            });
+
+        });
+    </script>
+}

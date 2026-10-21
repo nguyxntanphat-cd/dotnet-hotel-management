@@ -1,0 +1,224 @@
+@page
+@model MyRazorApp.Pages.Permissions.PermissionsModel
+@{
+    ViewData["Title"] = "Phân quyền người dùng - AHoLa Hotel";
+}
+
+<div class="permissions-container container-fluid py-4 px-4">
+
+    <!-- TIÊU ĐỀ TRANG & NÚT LƯU -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-shield-lock-fill text-warning me-2"></i>Phân Quyền Hệ Thống
+            </h2>
+            <p class="text-muted mb-0">Quản lý và thiết lập ma trận quyền hạn chi tiết cho từng vai trò trong khách sạn AHoLa.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-arrow-counterclockwise me-1"></i> Khôi phục mặc định
+            </button>
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium" id="savePermissionsBtn">
+                <i class="bi bi-check2-all me-1"></i> Lưu phân quyền
+            </button>
+        </div>
+    </div>
+
+    <!-- THANH CHỌN VAI TRÒ NHANH (TABS) -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 p-2 bg-white">
+                <ul class="nav nav-pills nav-fill gap-2 role-tabs" id="roleTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill py-2 fw-semibold" id="admin-tab" data-bs-toggle="pill" data-bs-target="#admin-pane" type="button" role="tab">
+                            <i class="bi bi-shield-fill-check text-danger me-1"></i> Quản Trị Viên (Admin)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill py-2 fw-semibold" id="manager-tab" data-bs-toggle="pill" data-bs-target="#manager-pane" type="button" role="tab">
+                            <i class="bi bi-person-workspace text-primary me-1"></i> Quản Lý (Manager)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill py-2 fw-semibold" id="reception-tab" data-bs-toggle="pill" data-bs-target="#reception-pane" type="button" role="tab">
+                            <i class="bi bi-headset text-success me-1"></i> Lễ Tân (Reception)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill py-2 fw-semibold" id="housekeeping-tab" data-bs-toggle="pill" data-bs-target="#housekeeping-pane" type="button" role="tab">
+                            <i class="bi bi-house-heart text-info me-1"></i> Buồng Phòng (Housekeeping)
+                        </button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- NỘI DUNG MA TRẬN QUYỀN HẠN -->
+    <div class="tab-content" id="roleTabContent">
+        <!-- VAI TRÒ: QUẢN TRỊ VIÊN (ADMIN) -->
+        <div class="tab-pane fade show active" id="admin-pane" role="tabpanel">
+            <div class="row g-4">
+                @foreach (var group in Model.PermissionGroups)
+                {
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 permission-card">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="@group.Icon text-primary me-2"></i>@group.GroupName
+                                    </h5>
+                                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1 small">
+                                        @(group.GroupName == "Tổng quan" ? "Mặc định hệ thống" : "Toàn quyền")
+                                    </span>
+                                </div>
+                                <p class="text-muted small mt-1 mb-0">Phân hệ quản trị cốt lõi hệ thống</p>
+                            </div>
+                            <div class="card-body px-4">
+                                <hr class="text-muted opacity-25 my-3">
+                                <div class="d-flex flex-column gap-3">
+                                    @foreach (var perm in group.Permissions)
+                                    {
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 perm-item">
+                                            <div>
+                                                <div class="fw-semibold text-dark small">@perm.Name</div>
+                                                <code class="text-muted fs-7">Mã: @perm.Code</code>
+                                            </div>
+                                            <div class="form-check form-switch fs-5">
+                                                <!-- CHỈ KHÓA MỜ VÀ MỞ NẾU LÀ MỤC TỔNG QUAN (MÃ 1.1 HOẶC TÊN NHÓM TỔNG QUAN) -->
+                                                @if (group.GroupName == "Tổng quan" || perm.Code == "1.1")
+                                                {
+                                                    <input class="form-check-input custom-switch" type="checkbox" checked disabled>
+                                                }
+                                                else
+                                                {
+                                                    <input class="form-check-input custom-switch" type="checkbox" checked="@perm.IsGranted">
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- CÁC VAI TRÒ KHÁC (GIỐNG CẤU TRÚC NHƯNG CÓ THỂ TÙY CHỈNH TRẠNG THÁI MẶC ĐỊNH) -->
+        <div class="tab-pane fade" id="manager-pane" role="tabpanel">
+            <div class="row g-4">
+                @foreach (var group in Model.PermissionGroups)
+                {
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 permission-card">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="@group.Icon text-primary me-2"></i>@group.GroupName
+                                    </h5>
+                                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1 small">Quản lý</span>
+                                </div>
+                                <p class="text-muted small mt-1 mb-0">Phân hệ nghiệp vụ điều hành</p>
+                            </div>
+                            <div class="card-body px-4">
+                                <hr class="text-muted opacity-25 my-3">
+                                <div class="d-flex flex-column gap-3">
+                                    @foreach (var perm in group.Permissions)
+                                    {
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 perm-item">
+                                            <div>
+                                                <div class="fw-semibold text-dark small">@perm.Name</div>
+                                                <code class="text-muted fs-7">Mã: @perm.Code</code>
+                                            </div>
+                                            <div class="form-check form-switch fs-5">
+                                                <input class="form-check-input custom-switch" type="checkbox" checked="@(perm.Code != "1.3")">
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="reception-pane" role="tabpanel">
+            <div class="row g-4">
+                @foreach (var group in Model.PermissionGroups)
+                {
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 permission-card">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="@group.Icon text-primary me-2"></i>@group.GroupName
+                                    </h5>
+                                    <span class="badge bg-warning-subtle text-warning rounded-pill px-2 py-1 small">Nghiệp vụ lễ tân</span>
+                                </div>
+                                <p class="text-muted small mt-1 mb-0">Thao tác đặt phòng & khách hàng</p>
+                            </div>
+                            <div class="card-body px-4">
+                                <hr class="text-muted opacity-25 my-3">
+                                <div class="d-flex flex-column gap-3">
+                                    @foreach (var perm in group.Permissions)
+                                    {
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 perm-item">
+                                            <div>
+                                                <div class="fw-semibold text-dark small">@perm.Name</div>
+                                                <code class="text-muted fs-7">Mã: @perm.Code</code>
+                                            </div>
+                                            <div class="form-check form-switch fs-5">
+                                                <input class="form-check-input custom-switch" type="checkbox" checked="@(perm.Code.StartsWith("3") || perm.Code.StartsWith("4"))">
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="tab-pane fade" id="housekeeping-pane" role="tabpanel">
+            <div class="row g-4">
+                @foreach (var group in Model.PermissionGroups)
+                {
+                    <div class="col-xl-4 col-md-6">
+                        <div class="card border-0 shadow-sm rounded-4 h-100 permission-card">
+                            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h5 class="fw-bold text-dark mb-0">
+                                        <i class="@group.Icon text-primary me-2"></i>@group.GroupName
+                                    </h5>
+                                    <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1 small">Buồng phòng</span>
+                                </div>
+                                <p class="text-muted small mt-1 mb-0">Chuyên trách sơ đồ phòng & dịch vụ</p>
+                            </div>
+                            <div class="card-body px-4">
+                                <hr class="text-muted opacity-25 my-3">
+                                <div class="d-flex flex-column gap-3">
+                                    @foreach (var perm in group.Permissions)
+                                    {
+                                        <div class="d-flex align-items-center justify-content-between p-2 rounded-3 perm-item">
+                                            <div>
+                                                <div class="fw-semibold text-dark small">@perm.Name</div>
+                                                <code class="text-muted fs-7">Mã: @perm.Code</code>
+                                            </div>
+                                            <div class="form-check form-switch fs-5">
+                                                <input class="form-check-input custom-switch" type="checkbox" checked="@(perm.Code == "2.2" || perm.Code == "4.3")">
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,488 @@
+﻿@page
+@model MyRazorApp.Pages.Products.IndexModel
+@{
+    ViewData["Title"] = "Tổng quan & Giới thiệu - AHoLa Hotel";
+}
+
+<div class="container-fluid py-4" style="background-color: #f4f6f9; min-height: 100vh;">
+
+    <!-- ================= 1. TIÊU ĐỀ CHÍNH ================= -->
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-speedometer2 text-primary me-2"></i>Xin chào, AHola, Welcome, 你好!
+            </h2>
+            <p class="text-muted mb-0">Tình hình hoạt động và quản trị khách sạn hôm nay, <span class="fw-semibold text-primary">10/10/2026</span>.</p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0">
+            <span class="badge bg-white text-dark shadow-sm border px-3 py-2 fs-6">
+                <i class="bi bi-clock-history text-warning me-1"></i> Trạng thái hệ thống: <strong class="text-success">Hoạt động tốt</strong>
+            </span>
+        </div>
+    </div>
+
+    <!-- ================= 2. CÁC THẺ THỐNG KÊ ================= -->
+    @{
+        // Sparkline doanh thu 14 ngày (toạ độ trong khung 100 x 44)
+        var inv = System.Globalization.CultureInfo.InvariantCulture;
+        var totals = Model.ChartData.Select(x => x.RoomRevenue + x.ServiceRevenue).ToList();
+        double sMax = totals.Max(), sMin = totals.Min();
+        var sparkPoints = totals.Select((v, i) =>
+            (i * 100.0 / (totals.Count - 1)).ToString("0.##", inv) + "," +
+            (40 - (v - sMin) / (sMax - sMin) * 34).ToString("0.##", inv)).ToList();
+        var sparkLine = "M" + string.Join(" L", sparkPoints);
+        var sparkArea = sparkLine + " L100,44 L0,44 Z";
+
+        // So sánh 7 ngày gần nhất với 7 ngày trước đó
+        double last7 = totals.Skip(totals.Count - 7).Sum();
+        double prev7 = totals.Take(totals.Count - 7).Sum();
+        double delta = prev7 > 0 ? (last7 - prev7) / prev7 * 100 : 0;
+    }
+    <div class="row g-3 mb-5">
+
+        <!-- Thẻ 1: Phòng trống -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi kpi--success">
+                <div class="kpi-head">
+                    <span class="kpi-label">Phòng trống</span>
+                    <span class="kpi-icon"><i class="bi bi-door-open"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>14</span><span class="kpi-unit">/30</span></div>
+                <div class="kpi-meter"><span style="--w: 47%"></span></div>
+                <div class="kpi-foot"><span class="kpi-dot"></span>Sẵn sàng đón khách</div>
+            </div>
+        </div>
+
+        <!-- Thẻ 2: Đang có khách -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi kpi--primary">
+                <div class="kpi-head">
+                    <span class="kpi-label">Đang có khách</span>
+                    <span class="kpi-icon"><i class="bi bi-people"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>8</span><span class="kpi-unit">phòng</span></div>
+                <div class="kpi-meter"><span style="--w: 27%"></span></div>
+                <div class="kpi-foot">Công suất <strong>27%</strong></div>
+            </div>
+        </div>
+
+        <!-- Thẻ 3: Khách đến hôm nay -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi kpi--warning">
+                <div class="kpi-head">
+                    <span class="kpi-label">Đến hôm nay</span>
+                    <span class="kpi-icon"><i class="bi bi-box-arrow-in-right"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>3</span><span class="kpi-unit">lượt</span></div>
+                <div class="kpi-foot"><span class="kpi-dot"></span>Đặt phòng chờ nhận</div>
+            </div>
+        </div>
+
+        <!-- Thẻ 4: Trả phòng hôm nay -->
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="kpi kpi--violet">
+                <div class="kpi-head">
+                    <span class="kpi-label">Trả hôm nay</span>
+                    <span class="kpi-icon"><i class="bi bi-box-arrow-right"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count>1</span><span class="kpi-unit">lượt</span></div>
+                <div class="kpi-foot"><span class="kpi-dot"></span>Gồm cả trả trễ</div>
+            </div>
+        </div>
+
+        <!-- Thẻ 5: Doanh thu tháng này -->
+        <div class="col-xl-4 col-md-8 col-sm-12">
+            <div class="kpi kpi--dark">
+                <div class="kpi-head">
+                    <span class="kpi-label">Doanh thu tháng này</span>
+                    <span class="kpi-icon"><i class="bi bi-wallet2"></i></span>
+                </div>
+                <div class="kpi-value"><span data-count="175.5" data-decimals="1">175,5</span><span class="kpi-unit">triệu đ</span></div>
+                <svg class="kpi-spark" viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
+                    <path class="spark-area" d="@sparkArea" />
+                    <path class="spark-line" d="@sparkLine" pathLength="1" />
+                </svg>
+                <div class="kpi-foot">
+                    <span class="kpi-trend @(delta >= 0 ? "is-up" : "is-down")">
+                        <i class="bi @(delta >= 0 ? "bi-arrow-up-right" : "bi-arrow-down-right")"></i> @Math.Abs(delta).ToString("0.0")%
+                    </span>
+                    7 ngày qua so với tuần trước · Thực thu 175.455.000 đ
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ================= 3. BIỂU ĐỒ & TÌNH TRẠNG PHÒNG ================= -->
+    <div class="row g-4 mb-5">
+
+        <!-- Biểu đồ doanh thu -->
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm h-100 rounded-3">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="card-title fw-bold text-dark mb-0">
+                            <i class="bi bi-bar-chart-line text-primary me-2"></i>Doanh thu 14 ngày gần nhất
+                        </h5>
+                        <div class="d-flex align-items-center">
+                            <span class="badge rounded-pill me-2" style="background-color: #0d6efd; width: 12px; height: 12px;">&nbsp;</span>
+                            <span class="small text-muted me-3">Tiền phòng</span>
+                            <span class="badge rounded-pill me-2" style="background-color: #0dcaf0; width: 12px; height: 12px;">&nbsp;</span>
+                            <span class="small text-muted">Tiền dịch vụ</span>
+                        </div>
+                    </div>
+
+                    <!-- Khung biểu đồ -->
+                    <div style="height: 300px; width: 100%; padding: 15px 8px 55px; background: #fafbfc; border: 1px solid #e9ecef; border-radius: 8px; box-sizing: border-box;">
+                        <div style="height: 100%; width: 100%; display: flex; align-items: flex-end; justify-content: space-around; gap: 4px;">
+                            @foreach (var item in Model.ChartData)
+                            {
+                                <div style="flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; position: relative;">
+                                    <span style="font-size: 10px; color: #495057; white-space: nowrap; margin-bottom: 4px; font-weight: 500;">
+                                        @item.Value
+                                    </span>
+                                    <div style="width: 75%; height: @(item.Height)px; min-height: 6px; display: flex; flex-direction: column; flex-shrink: 0; overflow: hidden; border-radius: 4px 4px 0 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                        <div style="width: 100%; height: @(item.ServiceHeight)px; background-color: #0dcaf0; flex-shrink: 0;"></div>
+                                        <div style="width: 100%; height: @(item.RoomHeight)px; background-color: #0d6efd; flex-shrink: 0;"></div>
+                                    </div>
+                                    <span style="position: absolute; top: calc(100% + 9px); font-size: 10px; color: #6c757d; white-space: nowrap; transform: rotate(-35deg); transform-origin: top center;">
+                                        @item.Date
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tình trạng phòng -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm h-100 rounded-3">
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold text-dark mb-4">
+                        <i class="bi bi-pie-chart text-primary me-2"></i>Tình trạng phòng
+                    </h5>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted fw-medium">Trống</span>
+                            <span class="fw-bold text-success">14</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-success rounded-pill" style="width: 46%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted fw-medium">Đã đặt</span>
+                            <span class="fw-bold text-warning">3</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-warning rounded-pill" style="width: 10%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted fw-medium">Đang ở</span>
+                            <span class="fw-bold text-primary">8</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-primary rounded-pill" style="width: 27%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted fw-medium">Đang dọn</span>
+                            <span class="fw-bold text-secondary">3</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-secondary rounded-pill" style="width: 10%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <div class="d-flex justify-content-between mb-1 small">
+                            <span class="text-muted fw-medium">Bảo trì</span>
+                            <span class="fw-bold text-danger">2</span>
+                        </div>
+                        <div class="progress" style="height: 8px;">
+                            <div class="progress-bar bg-danger rounded-pill" style="width: 7%;"></div>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="#" class="btn btn-outline-primary w-100 py-2 fw-medium rounded-pill">
+                            <i class="bi bi-grid-3x3-gap me-2"></i>Mở sơ đồ phòng →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ĐƯỜNG NGĂN CÁCH TRANG TRÍ ĐẶC SẮC -->
+    <div class="section-divider my-5">
+        <div class="d-flex align-items-center justify-content-center">
+            <hr class="flex-grow-1 border-secondary opacity-25">
+            <span class="px-3 text-muted small text-uppercase fw-bold tracking-wider">
+                <i class="bi bi-star-fill text-warning me-1"></i> Khối Quản Trị & Nhân Sự <i class="bi bi-star-fill text-warning ms-1"></i>
+            </span>
+            <hr class="flex-grow-1 border-secondary opacity-25">
+        </div>
+    </div>
+
+    <!-- ================= 4. PHẦN BAN LÃNH ĐẠO ================= -->
+    <div class="mb-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark">Ban Lãnh Đạo AHola Hotel</h3>
+            <p class="text-muted">Những người định hướng chiến lược và phát triển thương hiệu</p>
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <!-- Lãnh đạo 1 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm text-center p-3 rounded-3 h-100 card-hover">
+                    <div class="card-body">
+                        <div class="position-relative d-inline-block mb-3">
+                            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80" class="rounded-circle shadow-sm border border-3 border-primary-subtle" width="90" height="90" alt="CEO">
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">Ông Nguyễn Văn A</h5>
+                        <p class="text-primary small fw-semibold mb-2">Chủ tịch Hội đồng Quản trị & CEO</p>
+                        <p class="text-muted small mb-3">Hơn 15 năm kinh nghiệm trong lĩnh vực quản trị khách sạn cao cấp và bất động sản nghỉ dưỡng.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-envelope"></i></a>
+                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lãnh đạo 2 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm text-center p-3 rounded-3 h-100 card-hover">
+                    <div class="card-body">
+                        <div class="position-relative d-inline-block mb-3">
+                            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80" class="rounded-circle shadow-sm border border-3 border-primary-subtle" width="90" height="90" alt="COO">
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">Bà Trần Thị B</h5>
+                        <p class="text-primary small fw-semibold mb-2">Giám đốc Vận hành (COO)</p>
+                        <p class="text-muted small mb-3">Chuyên gia tối ưu hóa quy trình dịch vụ buồng phòng, F&B và nâng cao trải nghiệm khách hàng.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-envelope"></i></a>
+                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lãnh đạo 3 -->
+            <div class="col-lg-4 col-md-6">
+                <div class="card border-0 shadow-sm text-center p-3 rounded-3 h-100 card-hover">
+                    <div class="card-body">
+                        <div class="position-relative d-inline-block mb-3">
+                            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80" class="rounded-circle shadow-sm border border-3 border-primary-subtle" width="90" height="90" alt="CFO">
+                            <span class="position-absolute bottom-0 end-0 p-1 bg-success border border-white rounded-circle"></span>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-1">Ông Lê Văn C</h5>
+                        <p class="text-primary small fw-semibold mb-2">Giám đốc Tài chính (CFO)</p>
+                        <p class="text-muted small mb-3">Đảm bảo dòng vốn, phân tích báo cáo tài chính và hoạch định chiến lược đầu tư bền vững cho khách sạn.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-envelope"></i></a>
+                            <a href="#" class="btn btn-sm btn-light text-primary rounded-circle"><i class="bi bi-linkedin"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ĐƯỜNG NGĂN CÁCH TRANG TRÍ ĐẶC SẮC -->
+    <div class="section-divider my-5">
+        <div class="d-flex align-items-center justify-content-center">
+            <hr class="flex-grow-1 border-secondary opacity-25">
+            <span class="px-3 text-muted small text-uppercase fw-bold tracking-wider">
+                <i class="bi bi-people-fill text-info me-1"></i> Khối Vận Hành Bộ Phận <i class="bi bi-people-fill text-info ms-1"></i>
+            </span>
+            <hr class="flex-grow-1 border-secondary opacity-25">
+        </div>
+    </div>
+
+    <!-- ================= 5. PHẦN TRƯỞNG CÁC BỘ PHẬN ================= -->
+    <div class="mb-5">
+        <div class="text-center mb-4">
+            <h3 class="fw-bold text-dark">Đội Ngũ Trưởng Bộ Phận</h3>
+            <p class="text-muted">Những cá nhân trực tiếp quản lý và duy trì chất lượng dịch vụ hàng ngày</p>
+        </div>
+
+        <div class="row g-3">
+            <!-- Bộ phận Lễ tân -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm p-3 rounded-3 h-100 card-hover">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="rounded-circle me-3" width="50" height="50" alt="Lễ tân">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">Phạm Thị D</h6>
+                            <small class="text-primary fw-medium">Trưởng bộ phận Lễ tân</small>
+                        </div>
+                    </div>
+                    <div class="small text-muted border-top pt-2">
+                        <div class="d-flex justify-content-between mb-1"><span>Ext:</span> <span class="fw-semibold text-dark">101</span></div>
+                        <div class="d-flex justify-content-between"><span>Ca trực:</span> <span class="badge bg-success-subtle text-success">Sáng / Chiều</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ phận Buồng phòng -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm p-3 rounded-3 h-100 card-hover">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&auto=format&fit=crop&q=80" class="rounded-circle me-3" width="50" height="50" alt="Buồng phòng">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">Hoàng Văn E</h6>
+                            <small class="text-primary fw-medium">Trưởng bộ phận Buồng phòng</small>
+                        </div>
+                    </div>
+                    <div class="small text-muted border-top pt-2">
+                        <div class="d-flex justify-content-between mb-1"><span>Ext:</span> <span class="fw-semibold text-dark">102</span></div>
+                        <div class="d-flex justify-content-between"><span>Ca trực:</span> <span class="badge bg-success-subtle text-success">Cả ngày</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ phận F&B -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm p-3 rounded-3 h-100 card-hover">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=80" class="rounded-circle me-3" width="50" height="50" alt="F&B">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">Vũ Minh F</h6>
+                            <small class="text-primary fw-medium">Trưởng bộ phận Ẩm thực (F&B)</small>
+                        </div>
+                    </div>
+                    <div class="small text-muted border-top pt-2">
+                        <div class="d-flex justify-content-between mb-1"><span>Ext:</span> <span class="fw-semibold text-dark">103</span></div>
+                        <div class="d-flex justify-content-between"><span>Ca trực:</span> <span class="badge bg-success-subtle text-success">Linh hoạt</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bộ phận Kỹ thuật & Bảo trì -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card border-0 shadow-sm p-3 rounded-3 h-100 card-hover">
+                    <div class="d-flex align-items-center mb-3">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=100&auto=format&fit=crop&q=80" class="rounded-circle me-3" width="50" height="50" alt="Kỹ thuật">
+                        <div>
+                            <h6 class="fw-bold text-dark mb-0">Đỗ Văn G</h6>
+                            <small class="text-primary fw-medium">Trưởng bộ phận Kỹ thuật</small>
+                        </div>
+                    </div>
+                    <div class="small text-muted border-top pt-2">
+                        <div class="d-flex justify-content-between mb-1"><span>Ext:</span> <span class="fw-semibold text-dark">104</span></div>
+                        <div class="d-flex justify-content-between"><span>Ca trực:</span> <span class="badge bg-warning-subtle text-warning">Trực sự cố 24/7</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ĐƯỜNG NGĂN CÁCH TRANG TRÍ ĐẶC SẮC -->
+    <div class="section-divider my-5">
+        <div class="d-flex align-items-center justify-content-center">
+            <hr class="flex-grow-1 border-secondary opacity-25">
+            <span class="px-3 text-muted small text-uppercase fw-bold tracking-wider">
+                <i class="bi bi-building text-success me-1"></i> Thông Tin Doanh Nghiệp & Liên Hệ <i class="bi bi-building text-success ms-1"></i>
+            </span>
+            <hr class="flex-grow-1 border-secondary opacity-25">
+        </div>
+    </div>
+
+    <!-- ================= 6. MÔ TẢ CÔNG TY, ĐỊA CHỈ & LIÊN HỆ ================= -->
+    <footer class="card border-0 shadow-sm rounded-3 p-4 bg-white text-dark mb-3">
+        <div class="row g-4">
+            <!-- Cột 1: Mô tả công ty -->
+            <div class="col-lg-5">
+                <h5 class="fw-bold text-primary mb-3"><i class="bi bi-house-heart me-2"></i>AHoLa Hotel Group</h5>
+                <p class="text-muted small lh-lg">
+                    AHoLa Hotel là hệ thống khách sạn đạt chuẩn quốc tế, mang đến không gian nghỉ dưỡng sang trọng, ấm cúng và tiện nghi hiện đại bậc nhất. Chúng tôi cam kết mang lại trải nghiệm dịch vụ tận tâm, chuyên nghiệp, tạo nên những khoảnh khắc nghỉ dưỡng tuyệt vời nhất cho mọi du khách trong và ngoài nước.
+                </p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-primary fs-5"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-info fs-5"><i class="bi bi-twitter"></i></a>
+                    <a href="#" class="text-danger fs-5"><i class="bi bi-instagram"></i></a>
+                    <a href="#" class="text-primary fs-5"><i class="bi bi-globe"></i></a>
+                </div>
+            </div>
+
+            <!-- Cột 2: Liên kết nhanh / Bộ phận -->
+            <div class="col-lg-3 col-md-6">
+                <h6 class="fw-bold text-dark mb-3">Dịch vụ chính</h6>
+                <ul class="list-unstyled small text-muted lh-lg">
+                    <li><i class="bi bi-chevron-right text-primary me-1"></i> Phòng nghỉ cao cấp (Deluxe, Suite)</li>
+                    <li><i class="bi bi-chevron-right text-primary me-1"></i> Nhà hàng & Quầy Bar Á-Âu</li>
+                    <li><i class="bi bi-chevron-right text-primary me-1"></i> Dịch vụ Spa & Massage thư giãn</li>
+                    <li><i class="bi bi-chevron-right text-primary me-1"></i> Tổ chức hội nghị & Sự kiện</li>
+                </ul>
+            </div>
+
+            <!-- Cột 3: Địa chỉ & Liên hệ -->
+            <div class="col-lg-4 col-md-6">
+                <h6 class="fw-bold text-dark mb-3">Thông tin liên hệ</h6>
+                <ul class="list-unstyled small text-muted lh-lg">
+                    <li class="mb-2">
+                        <i class="bi bi-geo-alt-fill text-danger me-2"></i>
+                        <strong>Trụ sở chính:</strong> 123 Đường Nguyễn Huệ, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-telephone-fill text-success me-2"></i>
+                        <strong>Hotline đặt phòng:</strong> (+84) 1900 6868 / 028 3822 9999
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-envelope-fill text-primary me-2"></i>
+                        <strong>Email hỗ trợ:</strong> contact@aholahotel.vn
+                    </li>
+                    <li>
+                        <i class="bi bi-clock-fill text-warning me-2"></i>
+                        <strong>Giờ mở cửa:</strong> Phục vụ 24/7 tất cả các ngày trong tuần
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <hr class="my-4 border-secondary opacity-15">
+
+        <div class="row align-items-center text-center text-md-start small text-muted">
+            <div class="col-md-6 mb-2 mb-md-0">
+                &copy; 2026 <strong>AHoLa Hotel</strong>. Tất cả quyền được bảo lưu.
+            </div>
+            <div class="col-md-6 text-md-end">
+                <span class="me-3">Chính sách bảo mật</span>
+                <span class="me-3">Điều khoản sử dụng</span>
+                <span>Hỗ trợ kỹ thuật</span>
+            </div>
+        </div>
+    </footer>
+
+</div>
+
+<!-- CSS Bổ sung hiệu ứng mượt mà và chuyên nghiệp -->
+<style>
+    .card-hover {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .card-hover:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    }
+    .tracking-wider {
+        letter-spacing: 1px;
+    }
+</style>
+
+<!-- Đảm bảo ứng dụng Bootstrap Icons đã được nhúng trong layout chính của bạn (_Layout.cshtml) -->

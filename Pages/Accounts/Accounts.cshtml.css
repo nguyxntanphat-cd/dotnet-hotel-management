@@ -1,0 +1,12 @@
+/* Khung Avatar tròn chứa ký tự viết tắt (Chờ ép dữ liệu hình ảnh sau) */
+.avatar-placeholder {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
+    font-size: 1.1rem;
+    border: 2px solid #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex-shrink: 0 !important;
+}
+
