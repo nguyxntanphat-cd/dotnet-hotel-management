@@ -1,0 +1,325 @@
+@page
+@model MyRazorApp.Pages.Policies.PoliciesModel
+@{
+    ViewData["Title"] = "Chính sách Khách sạn - AHoLa Hotel";
+}
+@functions {
+    // Biểu tượng & màu theo nhóm chính sách
+    string CategoryIcon(string category) => category switch
+    {
+        "Chính sách bảo mật" => "bi-shield-lock text-primary",
+        "Quy chế" => "bi-journal-bookmark text-success",
+        "Quy định khách sạn" => "bi-building-check text-warning",
+        _ => "bi-file-earmark-text text-secondary"
+    };
+}
+
+<div class="policies-container container-fluid py-4 px-4">
+
+    <!-- 1. TIÊU ĐỀ TRANG & NÚT THAO TÁC -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div>
+            <h2 class="fw-bold text-dark mb-1">
+                <i class="bi bi-shield-check text-secondary me-2"></i>Chính Sách Khách Sạn
+            </h2>
+            <p class="text-muted mb-0">Lưu trữ chính sách bảo mật, quy chế và quy định áp dụng tại AHoLa Hotel.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm fw-medium" data-bs-toggle="modal" data-bs-target="#addPolicyModal">
+                <i class="bi bi-plus-circle me-1"></i> Thêm Chính Sách
+            </button>
+        </div>
+    </div>
+
+    <!-- 2. THANH CÔNG CỤ: TAB NHÓM + TÌM KIẾM -->
+    <div class="pl-toolbar mb-3">
+        <nav class="pl-tabs" aria-label="Nhóm chính sách">
+            <a class="pl-tab @(string.IsNullOrEmpty(Model.CategoryFilter) ? "is-active" : "")"
+               asp-page="/Policies/Policies" asp-route-SearchTerm="@Model.SearchTerm" asp-route-StatusFilter="@Model.StatusFilter">
+                Tất cả <span class="pl-tab-count">@Model.TotalCount</span>
+            </a>
+            @foreach (var c in PoliciesModel.Categories)
+            {
+                <a class="pl-tab @(Model.CategoryFilter == c ? "is-active" : "")"
+                   asp-page="/Policies/Policies" asp-route-CategoryFilter="@c" asp-route-SearchTerm="@Model.SearchTerm" asp-route-StatusFilter="@Model.StatusFilter">
+                    @c <span class="pl-tab-count">@Model.CountIn(c)</span>
+                </a>
+            }
+        </nav>
+
+        <form method="get" class="pl-search">
+            <input type="hidden" name="CategoryFilter" value="@Model.CategoryFilter" />
+            <div class="pl-search-box">
+                <i class="bi bi-search"></i>
+                <input type="search" name="SearchTerm" value="@Model.SearchTerm" class="form-control form-control-sm" placeholder="Tìm theo mã, tiêu đề, nội dung...">
+            </div>
+            <select name="StatusFilter" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">Mọi trạng thái</option>
+                <option value="Đang áp dụng" selected="@(Model.StatusFilter == "Đang áp dụng")">Đang áp dụng</option>
+                <option value="Ngưng áp dụng" selected="@(Model.StatusFilter == "Ngưng áp dụng")">Ngưng áp dụng</option>
+            </select>
+        </form>
+    </div>
+
+    <div class="pl-summary mb-2">
+        Hiển thị <strong>@Model.PoliciesList.Count</strong> chính sách
+        <span class="pl-sep">·</span><span class="pl-dot is-on"></span>@Model.ActiveCount đang áp dụng
+        <span class="pl-sep">·</span><span class="pl-dot is-off"></span>@Model.InactiveCount ngưng áp dụng
+    </div>
+
+    <!-- 3. DANH SÁCH CHÍNH SÁCH (DẠNG LIST DỌC, GOM THEO NHÓM) -->
+    <div class="pl-list">
+        @if (!Model.PoliciesList.Any())
+        {
+            <div class="pl-empty">
+                <i class="bi bi-inbox"></i>
+                <div>Không tìm thấy chính sách nào.</div>
+            </div>
+        }
+
+        @foreach (var group in Model.PoliciesList.GroupBy(x => x.Category))
+        {
+            <div class="pl-group-head">
+                <i class="bi @CategoryIcon(group.Key)"></i>
+                <span>@group.Key</span>
+                <span class="pl-group-count">@group.Count()</span>
+            </div>
+
+            @foreach (var p in group)
+            {
+                var isActive = p.Status == "Đang áp dụng";
+                var preview = p.Content.Split('\n')[0];
+                <div class="pl-item @(isActive ? "" : "is-inactive")">
+                    <div class="pl-row">
+                        <button type="button" class="pl-toggle" aria-expanded="false" aria-controls="pl-body-@p.Id">
+                            <i class="bi bi-chevron-right pl-chevron"></i>
+                            <span class="pl-id">@p.Id</span>
+                            <span class="pl-main">
+                                <span class="pl-title">@p.Title</span>
+                                <span class="pl-preview">@preview</span>
+                            </span>
+                            <span class="pl-date" title="Ngày hiệu lực">@p.EffectiveDate.ToString("dd/MM/yyyy")</span>
+                            <span class="pl-status">
+                                <span class="pl-dot @(isActive ? "is-on" : "is-off")"></span>@p.Status
+                            </span>
+                        </button>
+
+                        <div class="pl-actions">
+                            <!-- 1. Nút Sửa -->
+                            <button type="button" class="pl-action btn-edit-policy" title="Chỉnh sửa"
+                                    data-id="@p.Id"
+                                    data-title="@p.Title"
+                                    data-category="@p.Category"
+                                    data-content="@p.Content"
+                                    data-effectivedate="@p.EffectiveDate.ToString("yyyy-MM-dd")"
+                                    data-status="@p.Status"
+                                    data-bs-toggle="modal" data-bs-target="#editPolicyModal">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+
+                            <!-- 2. Nút Đổi Trạng Thái Nhanh -->
+                            <form method="post" asp-page-handler="ToggleStatus" class="d-inline">
+                                <input type="hidden" name="id" value="@p.Id" />
+                                <button type="submit" class="pl-action" title="@(isActive ? "Ngưng áp dụng" : "Áp dụng lại")">
+                                    <i class="bi @(isActive ? "bi-archive" : "bi-arrow-counterclockwise")"></i>
+                                </button>
+                            </form>
+
+                            <!-- 3. Nút Xóa -->
+                            <button type="button" class="pl-action is-danger btn-delete-policy" title="Xóa chính sách"
+                                    data-id="@p.Id"
+                                    data-title="@p.Title"
+                                    data-bs-toggle="modal" data-bs-target="#deletePolicyModal">
+                                <i class="bi bi-trash3"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Nội dung đầy đủ: mở ra khi bấm vào dòng -->
+                    <div class="pl-body" id="pl-body-@p.Id">
+                        <div class="pl-body-inner">
+                            <div class="pl-content">@p.Content</div>
+                            <div class="pl-meta">
+                                <span><i class="bi bi-calendar-event"></i> Hiệu lực từ @p.EffectiveDate.ToString("dd/MM/yyyy")</span>
+                                <span><i class="bi bi-clock-history"></i> Cập nhật lần cuối @p.UpdatedAt.ToString("dd/MM/yyyy HH:mm")</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+
+</div>
+
+<!-- ======================= MODAL SYSTEM ======================= -->
+
+<!-- 1. MODAL THÊM CHÍNH SÁCH -->
+<div class="modal fade" id="addPolicyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Create">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-file-earmark-plus text-primary me-2"></i>Thêm Chính Sách Mới</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-medium small">Tiêu đề</label>
+                            <input type="text" class="form-control" name="NewPolicy.Title" placeholder="VD: Chính sách hủy phòng dịp Tết" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Mã chính sách</label>
+                            <input type="text" class="form-control bg-light" value="@PoliciesModel.NextId()" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Nhóm chính sách</label>
+                            <select class="form-select" name="NewPolicy.Category" required>
+                                @foreach (var c in PoliciesModel.Categories)
+                                {
+                                    <option value="@c">@c</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Ngày hiệu lực</label>
+                            <input type="date" class="form-control" name="NewPolicy.EffectiveDate" value="@DateTime.Today.ToString("yyyy-MM-dd")" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Trạng thái ban đầu</label>
+                            <select class="form-select" name="NewPolicy.Status" required>
+                                <option value="Đang áp dụng">Đang áp dụng</option>
+                                <option value="Ngưng áp dụng">Ngưng áp dụng</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium small">Nội dung</label>
+                            <textarea class="form-control" name="NewPolicy.Content" rows="6" placeholder="Mỗi điều khoản một dòng..." required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Lưu Chính Sách</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 2. MODAL CHỈNH SỬA CHÍNH SÁCH -->
+<div class="modal fade" id="editPolicyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Edit">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-pencil-square text-primary me-2"></i>Chỉnh Sửa Chính Sách</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="editPolicyId" name="EditPolicy.Id" />
+                    <div class="row g-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-medium small">Tiêu đề</label>
+                            <input type="text" id="editPolicyTitle" class="form-control" name="EditPolicy.Title" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Mã chính sách</label>
+                            <input type="text" id="editPolicyIdView" class="form-control bg-light" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Nhóm chính sách</label>
+                            <select id="editPolicyCategory" class="form-select" name="EditPolicy.Category" required>
+                                @foreach (var c in PoliciesModel.Categories)
+                                {
+                                    <option value="@c">@c</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Ngày hiệu lực</label>
+                            <input type="date" id="editPolicyEffectiveDate" class="form-control" name="EditPolicy.EffectiveDate" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium small">Trạng thái</label>
+                            <select id="editPolicyStatus" class="form-select" name="EditPolicy.Status" required>
+                                <option value="Đang áp dụng">Đang áp dụng</option>
+                                <option value="Ngưng áp dụng">Ngưng áp dụng</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium small">Nội dung</label>
+                            <textarea id="editPolicyContent" class="form-control" name="EditPolicy.Content" rows="6" required></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">Cập Nhật Chính Sách</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 3. MODAL XÓA CHÍNH SÁCH -->
+<div class="modal fade" id="deletePolicyModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form method="post" asp-page-handler="Delete">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold text-danger"><i class="bi bi-exclamation-triangle-fill me-2"></i>Xác Nhận Xóa Chính Sách</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="deletePolicyId" name="id" />
+                    <p class="mb-1 text-dark">Bạn có chắc chắn muốn xóa chính sách <strong id="deletePolicyTitle" class="text-danger"></strong> không?</p>
+                    <small class="text-muted">Nếu chỉ muốn lưu trữ lại, hãy chuyển sang "Ngưng áp dụng" thay vì xóa.</small>
+                </div>
+                <div class="modal-footer border-top-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4">Xóa Chính Sách</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+
+            // 0. Bấm vào dòng để mở / đóng nội dung đầy đủ
+            document.querySelectorAll(".pl-toggle").forEach(toggle => {
+                toggle.addEventListener("click", function () {
+                    const item = this.closest(".pl-item");
+                    const open = item.classList.toggle("is-open");
+                    this.setAttribute("aria-expanded", open);
+                });
+            });
+
+            // 1. Gán dữ liệu vào Modal Chỉnh sửa Chính sách
+            document.querySelectorAll(".btn-edit-policy").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("editPolicyId").value = this.getAttribute("data-id");
+                    document.getElementById("editPolicyIdView").value = this.getAttribute("data-id");
+                    document.getElementById("editPolicyTitle").value = this.getAttribute("data-title");
+                    document.getElementById("editPolicyCategory").value = this.getAttribute("data-category");
+                    document.getElementById("editPolicyContent").value = this.getAttribute("data-content");
+                    document.getElementById("editPolicyEffectiveDate").value = this.getAttribute("data-effectivedate");
+                    document.getElementById("editPolicyStatus").value = this.getAttribute("data-status");
+                });
+            });
+
+            // 2. Gán dữ liệu vào Modal Xóa Chính sách
+            document.querySelectorAll(".btn-delete-policy").forEach(button => {
+                button.addEventListener("click", function () {
+                    document.getElementById("deletePolicyId").value = this.getAttribute("data-id");
+                    document.getElementById("deletePolicyTitle").textContent = this.getAttribute("data-title");
+                });
+            });
+
+        });
+    </script>
+}
