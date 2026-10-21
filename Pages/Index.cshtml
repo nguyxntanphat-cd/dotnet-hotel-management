@@ -21,92 +21,87 @@
         </div>
     </div>
 
-    <!-- ================= 2. CÁC THẺ THỐNG KÊ ================= -->
-    @{
-        // Sparkline doanh thu 14 ngày (toạ độ trong khung 100 x 44)
-        var inv = System.Globalization.CultureInfo.InvariantCulture;
-        var totals = Model.ChartData.Select(x => x.RoomRevenue + x.ServiceRevenue).ToList();
-        double sMax = totals.Max(), sMin = totals.Min();
-        var sparkPoints = totals.Select((v, i) =>
-            (i * 100.0 / (totals.Count - 1)).ToString("0.##", inv) + "," +
-            (40 - (v - sMin) / (sMax - sMin) * 34).ToString("0.##", inv)).ToList();
-        var sparkLine = "M" + string.Join(" L", sparkPoints);
-        var sparkArea = sparkLine + " L100,44 L0,44 Z";
-
-        // So sánh 7 ngày gần nhất với 7 ngày trước đó
-        double last7 = totals.Skip(totals.Count - 7).Sum();
-        double prev7 = totals.Take(totals.Count - 7).Sum();
-        double delta = prev7 > 0 ? (last7 - prev7) / prev7 * 100 : 0;
-    }
+    <!-- ================= 2. CÁC THẺ THỐNG KÊ ĐẶC SẮC ================= -->
     <div class="row g-3 mb-5">
 
         <!-- Thẻ 1: Phòng trống -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="kpi kpi--success">
-                <div class="kpi-head">
-                    <span class="kpi-label">Phòng trống</span>
-                    <span class="kpi-icon"><i class="bi bi-door-open"></i></span>
+            <div class="card border-0 shadow-sm h-100 border-start border-primary border-4 rounded-3 card-hover">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small text-uppercase fw-bold">Phòng trống</span>
+                        <div class="icon-shape bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-door-open fs-6"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">9/20</h3>
+                    <small class="text-success fw-medium"><i class="bi bi-check-circle me-1"></i>Sẵn sàng đón khách</small>
                 </div>
-                <div class="kpi-value"><span data-count>14</span><span class="kpi-unit">/30</span></div>
-                <div class="kpi-meter"><span style="--w: 47%"></span></div>
-                <div class="kpi-foot"><span class="kpi-dot"></span>Sẵn sàng đón khách</div>
             </div>
         </div>
 
         <!-- Thẻ 2: Đang có khách -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="kpi kpi--primary">
-                <div class="kpi-head">
-                    <span class="kpi-label">Đang có khách</span>
-                    <span class="kpi-icon"><i class="bi bi-people"></i></span>
+            <div class="card border-0 shadow-sm h-100 border-start border-info border-4 rounded-3 card-hover">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small text-uppercase fw-bold">Đang có khách</span>
+                        <div class="icon-shape bg-info-subtle text-info rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-people fs-6"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">8</h3>
+                    <small class="text-muted fw-medium">Công suất <span class="text-info fw-bold">27%</span></small>
                 </div>
-                <div class="kpi-value"><span data-count>8</span><span class="kpi-unit">phòng</span></div>
-                <div class="kpi-meter"><span style="--w: 27%"></span></div>
-                <div class="kpi-foot">Công suất <strong>27%</strong></div>
             </div>
         </div>
 
         <!-- Thẻ 3: Khách đến hôm nay -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="kpi kpi--warning">
-                <div class="kpi-head">
-                    <span class="kpi-label">Đến hôm nay</span>
-                    <span class="kpi-icon"><i class="bi bi-box-arrow-in-right"></i></span>
+            <div class="card border-0 shadow-sm h-100 border-start border-warning border-4 rounded-3 card-hover">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small text-uppercase fw-bold">Đến hôm nay</span>
+                        <div class="icon-shape bg-warning-subtle text-warning rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-box-arrow-in-right fs-6"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">3</h3>
+                    <small class="text-muted fw-medium">Đặt phòng chờ nhận</small>
                 </div>
-                <div class="kpi-value"><span data-count>3</span><span class="kpi-unit">lượt</span></div>
-                <div class="kpi-foot"><span class="kpi-dot"></span>Đặt phòng chờ nhận</div>
             </div>
         </div>
 
         <!-- Thẻ 4: Trả phòng hôm nay -->
         <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="kpi kpi--violet">
-                <div class="kpi-head">
-                    <span class="kpi-label">Trả hôm nay</span>
-                    <span class="kpi-icon"><i class="bi bi-box-arrow-right"></i></span>
+            <div class="card border-0 shadow-sm h-100 border-start border-danger border-4 rounded-3 card-hover">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between mb-2">
+                        <span class="text-muted small text-uppercase fw-bold">Trả hôm nay</span>
+                        <div class="icon-shape bg-danger-subtle text-danger rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-box-arrow-right fs-6"></i>
+                        </div>
+                    </div>
+                    <h3 class="fw-bold text-dark mb-1">1</h3>
+                    <small class="text-muted fw-medium">Gồm cả trả trễ</small>
                 </div>
-                <div class="kpi-value"><span data-count>1</span><span class="kpi-unit">lượt</span></div>
-                <div class="kpi-foot"><span class="kpi-dot"></span>Gồm cả trả trễ</div>
             </div>
         </div>
 
         <!-- Thẻ 5: Doanh thu tháng này -->
         <div class="col-xl-4 col-md-8 col-sm-12">
-            <div class="kpi kpi--dark">
-                <div class="kpi-head">
-                    <span class="kpi-label">Doanh thu tháng này</span>
-                    <span class="kpi-icon"><i class="bi bi-wallet2"></i></span>
-                </div>
-                <div class="kpi-value"><span data-count="175.5" data-decimals="1">175,5</span><span class="kpi-unit">triệu đ</span></div>
-                <svg class="kpi-spark" viewBox="0 0 100 44" preserveAspectRatio="none" aria-hidden="true">
-                    <path class="spark-area" d="@sparkArea" />
-                    <path class="spark-line" d="@sparkLine" pathLength="1" />
-                </svg>
-                <div class="kpi-foot">
-                    <span class="kpi-trend @(delta >= 0 ? "is-up" : "is-down")">
-                        <i class="bi @(delta >= 0 ? "bi-arrow-up-right" : "bi-arrow-down-right")"></i> @Math.Abs(delta).ToString("0.0")%
-                    </span>
-                    7 ngày qua so với tuần trước · Thực thu 175.455.000 đ
+            <div class="card border-0 shadow-sm h-100 rounded-3 card-hover text-white" style="background: linear-gradient(135deg, #6f42c1 0%, #4e2a84 100%);">
+                <div class="card-body d-flex flex-column justify-content-between">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <span class="small text-uppercase fw-bold opacity-75">Doanh thu tháng này</span>
+                        <div class="bg-white bg-opacity-25 rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                            <i class="bi bi-wallet2 fs-6"></i>
+                        </div>
+                    </div>
+                    <div>
+                        <h2 class="fw-bold mb-0 mt-1">175,5 tr</h2>
+                        <small class="opacity-75">Tổng thực thu: 175.455.000 đ</small>
+                    </div>
                 </div>
             </div>
         </div>
@@ -167,37 +162,37 @@
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1 small">
                             <span class="text-muted fw-medium">Trống</span>
-                            <span class="fw-bold text-success">14</span>
+                            <span class="fw-bold text-success">9</span>
                         </div>
                         <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-success rounded-pill" style="width: 46%;"></div>
+                            <div class="progress-bar bg-success rounded-pill" style="width: 45%;"></div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1 small">
                             <span class="text-muted fw-medium">Đã đặt</span>
-                            <span class="fw-bold text-warning">3</span>
+                            <span class="fw-bold text-warning">4</span>
                         </div>
                         <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-warning rounded-pill" style="width: 10%;"></div>
+                            <div class="progress-bar bg-warning rounded-pill" style="width: 20%;"></div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1 small">
                             <span class="text-muted fw-medium">Đang ở</span>
-                            <span class="fw-bold text-primary">8</span>
+                            <span class="fw-bold text-primary">3</span>
                         </div>
                         <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-primary rounded-pill" style="width: 27%;"></div>
+                            <div class="progress-bar bg-primary rounded-pill" style="width: 15%;"></div>
                         </div>
                     </div>
 
                     <div class="mb-3">
                         <div class="d-flex justify-content-between mb-1 small">
                             <span class="text-muted fw-medium">Đang dọn</span>
-                            <span class="fw-bold text-secondary">3</span>
+                            <span class="fw-bold text-secondary">2</span>
                         </div>
                         <div class="progress" style="height: 8px;">
                             <div class="progress-bar bg-secondary rounded-pill" style="width: 10%;"></div>
@@ -210,7 +205,7 @@
                             <span class="fw-bold text-danger">2</span>
                         </div>
                         <div class="progress" style="height: 8px;">
-                            <div class="progress-bar bg-danger rounded-pill" style="width: 7%;"></div>
+                            <div class="progress-bar bg-danger rounded-pill" style="width: 10%;"></div>
                         </div>
                     </div>
 
