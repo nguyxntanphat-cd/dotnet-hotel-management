@@ -30,274 +30,53 @@ body {
   text-align: start;
 }
 
-
-/* =====================================================================
-   KPI CARD - thẻ thống kê dùng chung cho toàn hệ thống
-   Cấu trúc:
-   <div class="kpi kpi--primary">
-     <div class="kpi-head"><span class="kpi-label">..</span><span class="kpi-icon"><i class="bi .."></i></span></div>
-     <div class="kpi-value"><span data-count>14</span><span class="kpi-unit">/30</span></div>
-     <div class="kpi-meter"><span style="--w: 47%"></span></div>     (tuỳ chọn)
-     <div class="kpi-foot">..</div>                                   (tuỳ chọn)
-   </div>
-   ===================================================================== */
-.kpi {
-  --kpi-tone: #2563eb;
-  --kpi-bg: #ffffff;
-  --kpi-border: #e6e8ec;
-  --kpi-border-hover: #d3d7de;
-  --kpi-label: #667085;
-  --kpi-value: #101828;
-  --kpi-muted: #8a919e;
-  --kpi-track: #eef0f3;
-  --kpi-ease: cubic-bezier(.2, .7, .2, 1);
-  --i: 0;
-
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  padding: 1rem 1.125rem;
-  overflow: hidden;
-  background: var(--kpi-bg);
-  border: 1px solid var(--kpi-border);
-  border-radius: 12px;
-  box-shadow: 0 1px 2px rgba(16, 24, 40, .04);
-  transition: transform .35s var(--kpi-ease), box-shadow .35s var(--kpi-ease), border-color .35s ease;
-  /* Xuất hiện: mờ + nhoè -> rõ dần, trồi nhẹ lên, lần lượt theo thứ tự */
-  animation: kpi-in .7s var(--kpi-ease) both;
-  animation-delay: calc(var(--i) * 70ms);
-}
-
-/* Thứ tự xuất hiện theo vị trí cột trong hàng */
-.row > :nth-child(2) > .kpi { --i: 1; }
-.row > :nth-child(3) > .kpi { --i: 2; }
-.row > :nth-child(4) > .kpi { --i: 3; }
-.row > :nth-child(5) > .kpi { --i: 4; }
-.row > :nth-child(6) > .kpi { --i: 5; }
-
-/* Đường nhấn mép trên chạy ra khi hover */
-.kpi::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto 0;
-  height: 2px;
-  background: var(--kpi-tone);
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .5s var(--kpi-ease);
-}
-
-/* Vệt sáng mềm đi theo con trỏ (toạ độ --mx/--my do site.js cập nhật) */
-.kpi::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 0%),
-              color-mix(in srgb, var(--kpi-tone) 9%, transparent), transparent 65%);
-  opacity: 0;
-  transition: opacity .4s ease;
-}
-
-.kpi:hover {
-  transform: translateY(-2px);
-  border-color: var(--kpi-border-hover);
-  box-shadow: 0 10px 24px -12px rgba(16, 24, 40, .18);
-}
-
-.kpi:hover::before { transform: scaleX(1); }
-.kpi:hover::after { opacity: 1; }
-
-.kpi-head {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: .5rem;
-  margin-bottom: .625rem;
-}
-
-.kpi-label {
-  font-size: .8125rem;
-  font-weight: 500;
-  color: var(--kpi-label);
-}
-
-/* Icon: ô vuông bo góc -> morph thành hình tròn đổ màu khi hover */
-.kpi-icon {
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 30px;
-  height: 30px;
-  font-size: .95rem;
-  color: var(--kpi-tone);
-  background: color-mix(in srgb, var(--kpi-tone) 9%, var(--kpi-bg));
-  border-radius: 8px;
-  transition: border-radius .45s var(--kpi-ease), background-color .35s ease, color .35s ease, transform .45s var(--kpi-ease);
-}
-
-.kpi:hover .kpi-icon {
-  border-radius: 50%;
-  color: #fff;
-  background: var(--kpi-tone);
-  transform: scale(1.06);
-}
-
-.kpi-value {
-  position: relative;
-  z-index: 1;
-  font-size: 1.75rem;
-  font-weight: 600;
-  line-height: 1.15;
-  letter-spacing: -.02em;
-  color: var(--kpi-value);
-  font-variant-numeric: tabular-nums;
-}
-
-.kpi-unit {
-  margin-left: .125rem;
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: 0;
-  color: var(--kpi-muted);
-}
-
-.kpi-foot {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  align-items: center;
-  gap: .4rem;
-  margin-top: auto; /* luôn nằm đáy thẻ để các thẻ trong hàng thẳng nhau */
-  padding-top: .625rem;
-  font-size: .8125rem;
-  color: var(--kpi-muted);
-}
-
-.kpi-foot strong {
-  font-weight: 600;
-  color: var(--kpi-value);
-}
-
-.kpi-trend { font-weight: 600; white-space: nowrap; }
-.kpi-trend.is-up { color: var(--kpi-up, #059669); }
-.kpi-trend.is-down { color: var(--kpi-down, #dc2626); }
-
-.kpi-dot {
-  width: 6px;
-  height: 6px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--kpi-tone);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--kpi-tone) 15%, transparent);
-}
-
-/* Thanh tỉ lệ: tự vẽ từ trái sang khi thẻ xuất hiện */
-.kpi-meter {
-  position: relative;
-  z-index: 1;
-  height: 4px;
-  margin-top: .75rem;
-  overflow: hidden;
-  background: var(--kpi-track);
-  border-radius: 99px;
-}
-
-.kpi-meter > span {
-  display: block;
-  width: var(--w, 0%);
-  height: 100%;
-  background: var(--kpi-tone);
-  border-radius: inherit;
-  transform-origin: left;
-  animation: kpi-meter 1.1s var(--kpi-ease) both;
-  animation-delay: calc(var(--i) * 70ms + 250ms);
-}
-
-/* Sparkline: đường tự vẽ ra, vùng phía dưới mờ dần hiện lên */
-.kpi-spark {
-  position: relative;
-  z-index: 1;
-  display: block;
-  width: 100%;
-  height: 44px;
-  margin-top: .75rem;
-  overflow: visible;
-}
-
-.kpi-spark .spark-line {
-  fill: none;
-  stroke: var(--kpi-tone);
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  vector-effect: non-scaling-stroke;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: kpi-draw 1.4s var(--kpi-ease) forwards;
-  animation-delay: calc(var(--i) * 70ms + 300ms);
-}
-
-.kpi-spark .spark-area {
-  --spark-max: .12;
-  fill: var(--kpi-tone);
-  opacity: 0;
-  animation: kpi-fade-to .9s ease forwards;
-  animation-delay: calc(var(--i) * 70ms + 900ms);
-}
-
-/* Tông màu */
-.kpi--primary { --kpi-tone: #2563eb; }
-.kpi--info    { --kpi-tone: #0891b2; }
-.kpi--success { --kpi-tone: #059669; }
-.kpi--warning { --kpi-tone: #d97706; }
-.kpi--danger  { --kpi-tone: #dc2626; }
-.kpi--violet  { --kpi-tone: #7c3aed; }
-
-/* Thẻ nổi bật nền tối, đồng bộ màu thanh điều hướng */
-.kpi--dark {
-  --kpi-tone: #60a5fa;
-  --kpi-bg: #1c1f2e;
-  --kpi-border: #262a3d;
-  --kpi-border-hover: #353a52;
-  --kpi-label: rgba(255, 255, 255, .62);
-  --kpi-value: #ffffff;
-  --kpi-muted: rgba(255, 255, 255, .55);
-  --kpi-track: rgba(255, 255, 255, .08);
-  --kpi-up: #34d399;
-  --kpi-down: #f87171;
-  background: linear-gradient(160deg, #23273a 0%, #171a27 100%);
-}
-
-.kpi--dark .kpi-icon { background: rgba(255, 255, 255, .07); }
-.kpi--dark .kpi-spark .spark-area { --spark-max: .2; }
-
-@keyframes kpi-in {
-  from { opacity: 0; translate: 0 10px; filter: blur(6px); }
-  to   { opacity: 1; translate: 0 0;    filter: blur(0); }
-}
-
-@keyframes kpi-meter {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
-
-@keyframes kpi-draw {
-  to { stroke-dashoffset: 0; }
-}
-
-@keyframes kpi-fade-to {
-  to { opacity: var(--spark-max); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .kpi, .kpi-meter > span, .kpi-spark .spark-line, .kpi-spark .spark-area {
-    animation: none;
-  }
-  .kpi-spark .spark-line { stroke-dashoffset: 0; }
-  .kpi-spark .spark-area { opacity: var(--spark-max); }
-  .kpi, .kpi::before, .kpi-icon { transition: none; }
-}
+/* Room operations dashboard */
+:root { --ink: #17233c; --muted: #748098; --line: #e9edf4; --canvas: #f5f7fb; }
+.dashboard-page, .rooms-page { min-height: calc(100vh - 150px); background: var(--canvas); color: var(--ink); }
+.eyebrow { color: #71809c; font-size: .72rem; font-weight: 800; letter-spacing: .13em; }
+.page-title { color: var(--ink); font-size: clamp(1.8rem, 3vw, 2.35rem); font-weight: 750; letter-spacing: -.04em; }
+.overview-panel, .room-toolbar { padding: 1.5rem; border: 1px solid var(--line); border-radius: 18px; background: #fff; box-shadow: 0 8px 28px rgba(31,48,80,.045); }
+.section-title { font-size: 1.18rem; font-weight: 750; color: var(--ink); }
+.occupancy { display: flex; align-items: center; gap: .6rem; line-height: 1.35; }
+.occupancy-number { font-size: 2.5rem; line-height: 1; font-weight: 800; letter-spacing: -.06em; color: #167e63; }
+.status-card { position: relative; min-height: 110px; padding: 1rem; border-radius: 14px; background: #f8fafc; border: 1px solid #edf0f5; }
+.status-dot { display: inline-block; width: 8px; height: 8px; margin-right: .4rem; border-radius: 50%; background: currentColor; }
+.status-label { display: inline; font-size: .85rem; font-weight: 650; color: #526078; }
+.status-count { margin-top: .8rem; font-size: 1.65rem; line-height: 1; font-weight: 800; color: var(--ink); }
+.status-count small { font-size: .75rem; font-weight: 500; color: #8791a4; }
+.available { color: #168568; } .booked { color: #c58a20; } .occupied { color: #3f73d7; } .cleaning { color: #77839a; } .maintenance { color: #d45c5c; }
+.room-summary-bar { display: flex; overflow: hidden; height: 9px; border-radius: 10px; background: #edf1f6; }
+.room-summary-bar span { height: 100%; } .seg-available { background: #24a581; } .seg-booked { background: #efb84e; } .seg-occupied { background: #5a86e8; } .seg-cleaning { background: #aab3c1; } .seg-maintenance { background: #e67b7b; }
+.floor-line { display: grid; grid-template-columns: 76px 1fr; align-items: center; gap: 1rem; padding: .95rem 0; border-bottom: 1px solid #f0f2f6; font-size: .88rem; font-weight: 700; }
+.floor-mini-rooms { display: grid; grid-template-columns: repeat(5, minmax(40px, 1fr)); gap: .6rem; }
+.mini-room { display: grid; place-items: center; min-height: 40px; border-radius: 9px; background: #e6f5f0; color: #168568; font-size: .75rem; font-weight: 700; }
+.mini-room.booked { background: #fff4db; color: #a97513; } .mini-room.occupied { background: #eaf0ff; color: #3f73d7; } .mini-room.cleaning { background: #eef0f4; color: #77839a; } .mini-room.maintenance { background: #fff0f0; color: #d45c5c; }
+.dashboard-photo { min-height: 190px; background: linear-gradient(0deg, rgba(19,33,55,.1), rgba(19,33,55,.02)), url('https://images.unsplash.com/photo-1611892440504-42a792e24d32?auto=format&fit=crop&w=1200&q=85') center 55%/cover; }
+.floor-heading { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1rem; }
+.floor-kicker { color: #8893a6; font-size: .68rem; font-weight: 800; letter-spacing: .12em; }
+.floor-title { margin: .15rem 0 0; font-size: 1.3rem; font-weight: 750; }
+.floor-price { color: #68758c; font-size: .85rem; }
+.room-filters { display: flex; flex-wrap: wrap; gap: .5rem; }
+.filter-button { padding: .55rem .8rem; border: 1px solid transparent; border-radius: 10px; background: transparent; color: #69768d; font-size: .84rem; font-weight: 650; }
+.filter-button span { margin-left: .25rem; color: #9aa4b5; font-size: .76rem; }
+.filter-button:hover, .filter-button.active { border-color: #dce7ff; background: #edf3ff; color: #3466c5; }
+.room-card { overflow: hidden; border: 1px solid var(--line); border-radius: 16px; background: #fff; box-shadow: 0 5px 22px rgba(31,48,80,.045); transition: transform .2s, box-shadow .2s; }
+.room-card:hover { transform: translateY(-3px); box-shadow: 0 13px 30px rgba(31,48,80,.11); }
+.room-image-wrap { position: relative; height: 205px; overflow: hidden; background: #e8edf3; }
+.room-image { width: 100%; height: 100%; object-fit: cover; transition: transform .35s; }
+.room-card:hover .room-image { transform: scale(1.04); }
+.room-status { position: absolute; top: 12px; left: 12px; display: inline-flex; align-items: center; gap: 6px; padding: .42rem .65rem; border: 1px solid rgba(255,255,255,.65); border-radius: 999px; background: rgba(255,255,255,.94); font-size: .72rem; font-weight: 750; }
+.room-status i { font-size: .48rem; } .room-status.available { color: #168568; } .room-status.booked { color: #a97513; } .room-status.occupied { color: #3f73d7; } .room-status.cleaning { color: #77839a; } .room-status.maintenance { color: #d45c5c; }
+.room-favorite { position: absolute; top: 11px; right: 11px; display: grid; place-items: center; width: 35px; height: 35px; border: 0; border-radius: 50%; background: rgba(255,255,255,.94); color: #56627a; }
+.room-favorite.selected { color: #dd6270; }
+.room-card-body { padding: 1.05rem 1.1rem 1.15rem; }
+.room-type { color: #74809a; font-size: .7rem; font-weight: 800; letter-spacing: .09em; text-transform: uppercase; }
+.room-name { margin: .18rem 0 .2rem; color: var(--ink); font-size: 1.08rem; font-weight: 750; }
+.room-location { color: #8791a4; font-size: .8rem; }
+.room-capacity { padding: .3rem .45rem; border-radius: 8px; background: #f4f6f9; color: #74809a; font-size: .78rem; }
+.room-card-divider { margin: .95rem 0 .8rem; border-top: 1px solid #eef0f4; }
+.room-price { color: var(--ink); font-size: 1rem; font-weight: 800; }
+.room-price-unit { color: #8791a4; font-size: .75rem; }
+.room-rating { display: flex; align-items: center; gap: .3rem; color: #e9a938; font-size: .86rem; }
+.room-rating strong { color: #4b5870; font-size: .82rem; }
+@media (max-width: 575.98px) { .overview-panel, .room-toolbar { padding: 1rem; } .floor-line { grid-template-columns: 58px 1fr; gap: .5rem; } .floor-mini-rooms { gap: .3rem; } .mini-room { min-height: 34px; font-size: .66rem; } .room-image-wrap { height: 190px; } }

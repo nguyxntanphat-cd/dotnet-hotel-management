@@ -27,46 +27,58 @@
     <!-- 2. THỐNG KÊ NHANH NHÂN SỰ -->
     <div class="row g-3 mb-4">
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi kpi--primary">
-                <div class="kpi-head">
-                    <span class="kpi-label">Tổng nhân viên</span>
-                    <span class="kpi-icon"><i class="bi bi-people"></i></span>
+            <div class="card border-0 shadow-sm rounded-3 card-stat">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Tổng Nhân Viên</span>
+                        <h3 class="fw-bold text-dark mb-0 mt-1">@Model.EmployeesList.Count</h3>
+                    </div>
+                    <div class="icon-box bg-primary-subtle text-primary rounded-circle">
+                        <i class="bi bi-people fs-4"></i>
+                    </div>
                 </div>
-                <div class="kpi-value"><span data-count>@Model.EmployeesList.Count</span></div>
             </div>
         </div>
 
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi kpi--success">
-                <div class="kpi-head">
-                    <span class="kpi-label">Đang làm việc</span>
-                    <span class="kpi-icon"><i class="bi bi-person-check"></i></span>
+            <div class="card border-0 shadow-sm rounded-3 card-stat">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Đang Làm Việc</span>
+                        <h3 class="fw-bold text-success mb-0 mt-1">@Model.EmployeesList.Count(x => x.Status == "Đang làm việc")</h3>
+                    </div>
+                    <div class="icon-box bg-success-subtle text-success rounded-circle">
+                        <i class="bi bi-person-check fs-4"></i>
+                    </div>
                 </div>
-                <div class="kpi-value"><span data-count>@Model.EmployeesList.Count(x => x.Status == "Đang làm việc")</span></div>
             </div>
         </div>
 
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi kpi--warning">
-                <div class="kpi-head">
-                    <span class="kpi-label">Đang nghỉ phép</span>
-                    <span class="kpi-icon"><i class="bi bi-person-exclamation"></i></span>
+            <div class="card border-0 shadow-sm rounded-3 card-stat">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Đang Nghỉ Phép</span>
+                        <h3 class="fw-bold text-warning mb-0 mt-1">@Model.EmployeesList.Count(x => x.Status == "Đang nghỉ phép")</h3>
+                    </div>
+                    <div class="icon-box bg-warning-subtle text-warning rounded-circle">
+                        <i class="bi bi-person-exclamation fs-4"></i>
+                    </div>
                 </div>
-                <div class="kpi-value"><span data-count>@Model.EmployeesList.Count(x => x.Status == "Đang nghỉ phép")</span></div>
             </div>
         </div>
 
         <div class="col-xl-3 col-sm-6">
-            <div class="kpi kpi--info">
-                <div class="kpi-head">
-                    <span class="kpi-label">Bộ phận nhiều nhất</span>
-                    <span class="kpi-icon"><i class="bi bi-building"></i></span>
+            <div class="card border-0 shadow-sm rounded-3 card-stat">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <span class="text-muted small text-uppercase fw-bold">Bộ Phận Nhiều Nhất</span>
+                        <h3 class="fw-bold text-info mb-0 mt-1">Lễ tân (@Model.EmployeesList.Count(x => x.Department == "Lễ tân"))</h3>
+                    </div>
+                    <div class="icon-box bg-info-subtle text-info rounded-circle">
+                        <i class="bi bi-building fs-4"></i>
+                    </div>
                 </div>
-                @{
-                    var topDept = Model.EmployeesList.GroupBy(x => x.Department).OrderByDescending(g => g.Count()).FirstOrDefault();
-                }
-                <div class="kpi-value"><span data-count>@(topDept?.Count() ?? 0)</span><span class="kpi-unit">người</span></div>
-                <div class="kpi-foot"><span class="kpi-dot"></span>@(topDept?.Key ?? "Chưa có dữ liệu")</div>
             </div>
         </div>
     </div>

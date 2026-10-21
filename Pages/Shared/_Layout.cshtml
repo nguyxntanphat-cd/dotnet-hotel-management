@@ -72,22 +72,10 @@
                         </li>
 
                         <!-- 2. Quản lý Phòng -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle px-3 rounded-pill text-light hover-bg-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <li class="nav-item">
+                            <a class="nav-link px-3 rounded-pill text-light hover-bg-light" asp-page="/Rooms/Index">
                                 <i class="bi bi-door-open me-1 text-warning"></i> 2. Phòng
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-0 rounded-3 mt-2">
-                                <li>
-                                    <a class="dropdown-item py-2" asp-page="/Rooms/TypesAndPricing">
-                                        <i class="bi bi-tags me-2 text-warning"></i> Loại phòng & Bảng giá
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item py-2" asp-page="/Rooms/Diagram">
-                                        <i class="bi bi-grid-3x3-gap me-2 text-success"></i> Sơ đồ phòng
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
 
                         <!-- 3. Khách hàng & Đặt phòng -->
@@ -140,33 +128,10 @@
                         </li>
 
                         <!-- Chính sách -->
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle px-3 rounded-pill text-light hover-bg-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <li class="nav-item">
+                            <a class="nav-link px-3 rounded-pill text-light hover-bg-light" asp-page="/Privacy">
                                 <i class="bi bi-shield-check me-1 text-secondary"></i> Chính sách
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-dark shadow-lg border-0 rounded-3 mt-2">
-                                <li>
-                                    <a class="dropdown-item py-2" asp-page="/Policies/Policies" asp-route-CategoryFilter="Chính sách bảo mật">
-                                        <i class="bi bi-shield-lock me-2 text-primary"></i> Chính sách bảo mật
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item py-2" asp-page="/Policies/Policies" asp-route-CategoryFilter="Quy chế">
-                                        <i class="bi bi-journal-bookmark me-2 text-success"></i> Quy chế
-                                    </a>
-                                </li>
-                                <li>
-                                    <a class="dropdown-item py-2" asp-page="/Policies/Policies" asp-route-CategoryFilter="Quy định khách sạn">
-                                        <i class="bi bi-building-check me-2 text-warning"></i> Quy định khách sạn
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider opacity-25"></li>
-                                <li>
-                                    <a class="dropdown-item py-2" asp-page="/Policies/Policies">
-                                        <i class="bi bi-collection me-2 text-info"></i> Tất cả chính sách
-                                    </a>
-                                </li>
-                            </ul>
                         </li>
 
                     </ul>
@@ -224,7 +189,7 @@
         <div class="container text-center text-md-start">
             <div class="row align-items-center">
                 <div class="col-md-6">
-                    &copy; 2026 - <strong>AHoLa Hotel Management</strong> - <a asp-area="" asp-page="/Policies/Policies" asp-route-CategoryFilter="Chính sách bảo mật" class="text-decoration-none">Chính sách bảo mật</a>
+                    &copy; 2026 - <strong>AHoLa Hotel Management</strong> - <a asp-area="" asp-page="/Privacy" class="text-decoration-none">Chính sách bảo mật</a>
                 </div>
                 <div class="col-md-6 text-md-end mt-2 mt-md-0">
                     <span class="badge bg-success-subtle text-success border border-success-subtle">Hệ thống đang hoạt động tốt</span>
